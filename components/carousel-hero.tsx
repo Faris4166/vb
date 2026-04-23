@@ -18,7 +18,6 @@ const MOCK_DATA = [
     subtitle: "ออปเพนไฮเมอร์",
     description: "เรื่องราวของ เจ. โรเบิร์ต ออปเพนไฮเมอร์ นักฟิสิกส์ทฤษฎีผู้มีบทบาทสำคัญในการพัฒนาอาวุธนิวเคลียร์ชิ้นแรกของโลกในโครงการแมนฮัตตัน ซึ่งนำไปสู่การสิ้นสุดของสงครามโลกครั้งที่ 2 แต่เขากลับต้องเผชิญกับความขัดแย้งในใจและผลกระทบที่ตามมาอย่างมหาศาล",
     image: "/Oppenheimer.jpg",
-    rank: "อันดับ 1 ในไทยวันนี้"
   },
   {
     id: "2",
@@ -27,7 +26,6 @@ const MOCK_DATA = [
     subtitle: "เดอะ แบทแมน",
     description: "บรูซ เวย์น ในปีที่สองของการเป็นแบทแมน ต้องเผชิญหน้ากับฆาตกรต่อเนื่องสุดวิปริต 'ริดเดลอร์' ที่ทิ้งปริศนาไว้ทั่วเมืองก็อธแฮม พร้อมกับการเปิดโปงความฉ้อฉลที่หยั่งรากลึกในเมืองที่เขาสาบานว่าจะปกป้อง",
     image: "/batman.webp",
-    rank: "อันดับ 2 ในไทยวันนี้"
   },
 ];
 
@@ -57,13 +55,8 @@ export default function CarouselHero() {
                 <div className="absolute inset-0 bg-black/20" />
 
                 {/* Content Container */}
-                <div className="relative h-full flex flex-col justify-end pb-20 md:justify-center px-6 md:px-16 lg:px-24 max-w-4xl space-y-4 md:space-y-6">
+                <div className="relative h-full flex flex-col justify-end pb-20 md:justify-center pt-24 md:pt-32 px-6 md:px-16 lg:px-24 max-w-4xl space-y-4 md:space-y-6">
                   
-                  <div className="flex items-center gap-2 text-yellow-400 font-bold text-xs md:text-base uppercase tracking-widest">
-                    <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
-                    {item.rank}
-                  </div>
-
                   <div className="space-y-3 md:space-y-4">
                     {/* Movie Logo - ปรับขนาด Mobile ให้เล็กลง */}
                     {item.titleLogo && (
@@ -87,12 +80,12 @@ export default function CarouselHero() {
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-3 md:gap-4 pt-2 md:pt-4">
-                    <Link href={`/watch/${item.id}`}>
+                    <Link href={`/movie/${item.id}`}>
                       <Button className="h-10 md:h-12 bg-white text-black hover:bg-yellow-400 hover:text-black px-6 md:px-8 font-black text-base md:text-lg rounded-lg md:rounded-xl transition-all active:scale-95">
                         <Play className="mr-2 h-4 w-4 md:h-5 md:w-5 fill-black" /> เล่น
                       </Button>
                     </Link>
-                    <Link href={`/watch/${item.id}`}>
+                    <Link href={`/movie/${item.id}`}>
                       <Button variant="outline" className="h-10 md:h-12 bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 md:px-8 font-bold text-base md:text-lg rounded-lg md:rounded-xl backdrop-blur-md transition-all active:scale-95">
                         <Info className="mr-2 h-4 w-4 md:h-5 md:w-5" /> ข้อมูล
                       </Button>

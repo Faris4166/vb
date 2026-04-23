@@ -11,7 +11,7 @@ interface MovieCardProps {
 
 export default function MovieCard({ id, title, image, rating, year }: MovieCardProps) {
   return (
-    <Link href={`/watch/${id}`} className="group relative block w-full">
+    <Link href={`/movie/${id}`} className="group relative block w-full">
       {/* 1. Image Container */}
       <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-lg transition-all duration-300 group-hover:z-30 group-hover:scale-105 group-hover:border-yellow-400/50 group-hover:shadow-yellow-400/20">
         <img
