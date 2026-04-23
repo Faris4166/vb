@@ -41,63 +41,60 @@ export default function CarouselHero() {
         <CarouselContent className="-ml-0">
           {MOCK_DATA.map((item, index) => (
             <CarouselItem key={index} className="pl-0">
-              <div className="relative h-[85vh] min-h-[600px] w-full overflow-hidden">
+              {/* ปรับความสูง Mobile เป็น 70vh และ Desktop เป็น 85vh */}
+              <div className="relative h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[600px] w-full overflow-hidden">
                 
-                {/* 1. Background Image */}
+                {/* Background Image */}
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 hover:scale-105"
+                  className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 md:hover:scale-105"
                 />
 
-                {/* 2. Gradient Overlays */}
+                {/* Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent opacity-90" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
                 <div className="absolute inset-0 bg-black/20" />
 
-                {/* 3. Content Container */}
-                <div className="relative h-full flex flex-col justify-center px-8 md:px-16 lg:px-24 max-w-4xl space-y-6">
+                {/* Content Container */}
+                <div className="relative h-full flex flex-col justify-end pb-20 md:justify-center px-6 md:px-16 lg:px-24 max-w-4xl space-y-4 md:space-y-6">
                   
-                  <div className="flex items-center gap-2 text-yellow-400 font-bold text-sm md:text-base uppercase tracking-widest">
-                    <TrendingUp className="h-5 w-5" />
+                  <div className="flex items-center gap-2 text-yellow-400 font-bold text-xs md:text-base uppercase tracking-widest">
+                    <TrendingUp className="h-4 w-4 md:h-5 md:w-5" />
                     {item.rank}
                   </div>
 
-                  <div className="space-y-4">
-                    {/* 4. Movie Logo */}
-                    {item.titleLogo ? (
-                      <div className="max-w-[280px] md:max-w-[400px] animate-in fade-in slide-in-from-left-8 duration-1000">
+                  <div className="space-y-3 md:space-y-4">
+                    {/* Movie Logo - ปรับขนาด Mobile ให้เล็กลง */}
+                    {item.titleLogo && (
+                      <div className="max-w-[200px] xs:max-w-[250px] md:max-w-[400px] animate-in fade-in slide-in-from-left-8 duration-1000">
                         <img 
                           src={item.titleLogo} 
                           alt={item.title} 
                           className="h-auto w-full object-contain drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                         />
                       </div>
-                    ) : (
-                      <h1 className="text-6xl md:text-8xl font-black text-white leading-[0.9] drop-shadow-2xl uppercase tracking-tighter">
-                        {item.title}
-                      </h1>
                     )}
                     
-                    <h2 className="text-xl md:text-2xl font-bold text-yellow-400/90 italic ml-1">
+                    <h2 className="text-lg md:text-2xl font-bold text-yellow-400/90 italic ml-1">
                       {item.subtitle}
                     </h2>
                   </div>
 
-                  <p className="text-gray-300 text-sm md:text-lg line-clamp-3 md:line-clamp-none max-w-2xl font-medium leading-relaxed drop-shadow-md">
+                  <p className="text-gray-300 text-xs md:text-lg line-clamp-3 md:line-clamp-none max-w-2xl font-medium leading-relaxed drop-shadow-md">
                     {item.description}
                   </p>
 
-                  {/* 5. Action Buttons - เพิ่ม Link เพื่อให้กดเข้าดูได้ */}
-                  <div className="flex items-center gap-4 pt-4">
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-3 md:gap-4 pt-2 md:pt-4">
                     <Link href={`/watch/${item.id}`}>
-                      <Button size="lg" className="h-12 bg-white text-black hover:bg-yellow-400 hover:text-black px-8 font-black text-lg rounded-xl transition-all hover:scale-105">
-                        <Play className="mr-2 h-5 w-5 fill-black" /> เล่น
+                      <Button className="h-10 md:h-12 bg-white text-black hover:bg-yellow-400 hover:text-black px-6 md:px-8 font-black text-base md:text-lg rounded-lg md:rounded-xl transition-all active:scale-95">
+                        <Play className="mr-2 h-4 w-4 md:h-5 md:w-5 fill-black" /> เล่น
                       </Button>
                     </Link>
                     <Link href={`/watch/${item.id}`}>
-                      <Button size="lg" variant="outline" className="h-12 bg-white/10 text-white border-white/20 hover:bg-white/20 px-8 font-bold text-lg rounded-xl backdrop-blur-md transition-all hover:scale-105">
-                        <Info className="mr-2 h-5 w-5" /> ข้อมูลเพิ่มเติม
+                      <Button variant="outline" className="h-10 md:h-12 bg-white/10 text-white border-white/20 hover:bg-white/20 px-6 md:px-8 font-bold text-base md:text-lg rounded-lg md:rounded-xl backdrop-blur-md transition-all active:scale-95">
+                        <Info className="mr-2 h-4 w-4 md:h-5 md:w-5" /> ข้อมูล
                       </Button>
                     </Link>
                   </div>
@@ -107,10 +104,10 @@ export default function CarouselHero() {
           ))}
         </CarouselContent>
         
-        {/* Navigation Arrows */}
-        <div className="absolute right-12 bottom-12 flex gap-4 z-20">
-          <CarouselPrevious className="static h-12 w-12 translate-y-0 bg-black/40 border-white/10 hover:bg-yellow-400 hover:text-black text-white backdrop-blur-xl transition-all" />
-          <CarouselNext className="static h-12 w-12 translate-y-0 bg-black/40 border-white/10 hover:bg-yellow-400 hover:text-black text-white backdrop-blur-xl transition-all" />
+        {/* Navigation Arrows - ซ่อนบน Mobile หรือปรับขนาด */}
+        <div className="absolute right-6 bottom-6 md:right-12 md:bottom-12 flex gap-3 z-20">
+          <CarouselPrevious className="static h-10 w-10 md:h-12 md:w-12 translate-y-0 bg-black/40 border-white/10 text-white backdrop-blur-xl" />
+          <CarouselNext className="static h-10 w-10 md:h-12 md:w-12 translate-y-0 bg-black/40 border-white/10 text-white backdrop-blur-xl" />
         </div>
       </Carousel>
     </section>

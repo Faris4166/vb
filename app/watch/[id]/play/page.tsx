@@ -19,14 +19,8 @@ import {
 
 // Mock Data
 const MOVIES_DETAILS = {
-  "1": {
-    title: "Oppenheimer",
-    video: "/video/videoplayback.mp4",
-  },
-  "2": {
-    title: "The Batman",
-    video: "/video/videoplayback2.mp4",
-  }
+  "1": { title: "Oppenheimer", video: "/video/videoplayback.mp4" },
+  "2": { title: "The Batman", video: "/video/videoplayback2.mp4" }
 };
 
 export default function PlayerPage() {
@@ -86,10 +80,8 @@ export default function PlayerPage() {
   };
 
   const formatTime = (time: number) => {
-    const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
+    const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    if (hours > 0) return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
@@ -100,11 +92,12 @@ export default function PlayerPage() {
       ref={playerContainerRef}
       className="relative h-screen w-screen bg-black overflow-hidden group/player select-none"
       onMouseMove={() => setShowControls(true)}
+      onTouchStart={() => setShowControls(true)}
     >
       <video
         ref={videoRef}
         src={movie.video}
-        className="h-full w-full cursor-pointer"
+        className="h-full w-full"
         onTimeUpdate={() => videoRef.current && setCurrentTime(videoRef.current.currentTime)}
         onLoadedMetadata={() => videoRef.current && setDuration(videoRef.current.duration)}
         onClick={togglePlay}
@@ -114,26 +107,26 @@ export default function PlayerPage() {
       />
 
       {/* Top Controls */}
-      <div className={`absolute top-0 left-0 right-0 p-8 z-50 flex items-center justify-between transition-opacity duration-500 ${showControls ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"}`}>
-        <button onClick={() => router.back()} className="flex items-center gap-4 text-white hover:scale-105 transition-all">
-          <ArrowLeft className="h-10 w-10" />
-          <span className="text-2xl font-bold tracking-tight">{movie.title}</span>
+      <div className={`absolute top-0 left-0 right-0 p-4 md:p-8 z-50 flex items-center justify-between transition-opacity duration-500 ${showControls ? "opacity-100" : "opacity-0"}`}>
+        <button onClick={() => router.back()} className="flex items-center gap-2 md:gap-4 text-white">
+          <ArrowLeft className="h-6 w-6 md:h-10 md:w-10" />
+          <span className="text-lg md:text-2xl font-bold truncate max-w-[200px] md:max-w-none">{movie.title}</span>
         </button>
-        <button onClick={() => router.back()} className="h-12 w-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-all text-white">
-          <X className="h-8 w-8" />
+        <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 flex items-center justify-center rounded-full bg-white/10 text-white">
+          <X className="h-6 w-6 md:h-8 md:w-8" />
         </button>
       </div>
 
       {/* Settings Menu */}
       {showSettings && (
-        <div className="absolute bottom-32 right-12 z-50 w-64 rounded-xl bg-black/80 border border-white/10 backdrop-blur-xl p-4 animate-in fade-in slide-in-from-bottom-4 duration-300">
-          <p className="text-sm font-bold text-gray-400 mb-3 px-2">ความคมชัด</p>
+        <div className="absolute bottom-24 right-4 md:bottom-32 md:right-12 z-50 w-56 md:w-64 rounded-xl bg-black/90 border border-white/10 backdrop-blur-xl p-4">
+          <p className="text-xs md:text-sm font-bold text-gray-400 mb-3 px-2">ความคมชัด</p>
           <div className="space-y-1">
-            {["4K (Ultra HD)", "1080p (Full HD)", "720p", "480p"].map((q) => (
+            {["4K", "1080p", "720p", "480p"].map((q) => (
               <button
                 key={q}
                 onClick={() => { setQuality(q); setShowSettings(false); }}
-                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors ${quality === q ? "bg-yellow-400 text-black" : "text-white hover:bg-white/10"}`}
+                className={`flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm font-medium ${quality === q ? "bg-yellow-400 text-black" : "text-white hover:bg-white/10"}`}
               >
                 {q}
                 {quality === q && <Check className="h-4 w-4" />}
@@ -145,33 +138,38 @@ export default function PlayerPage() {
 
       {/* Bottom Controls */}
       <div 
-        className={`absolute bottom-0 left-0 right-0 p-8 md:p-12 bg-gradient-to-t from-black/95 via-black/70 to-transparent transition-all duration-500 ${showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
+        className={`absolute bottom-0 left-0 right-0 p-6 md:p-12 bg-gradient-to-t from-black/95 via-black/70 to-transparent transition-all duration-500 ${showControls ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        <div className="group/progress relative mb-6">
-           <div className="flex justify-between text-sm mb-3 font-medium text-gray-300">
+        {/* Progress Bar */}
+        <div className="group/progress relative mb-4 md:mb-8">
+           <div className="flex justify-between text-[10px] md:text-sm mb-2 font-medium text-gray-300">
              <span>{formatTime(currentTime)}</span>
-             <span className="text-gray-500">-{formatTime(duration - currentTime)}</span>
+             <span>{formatTime(duration)}</span>
            </div>
-           <div className="relative h-1.5 w-full bg-white/20 rounded-full overflow-hidden group-hover/progress:h-2 transition-all">
+           <div className="relative h-1.5 md:h-2 w-full bg-white/20 rounded-full overflow-hidden">
               <div className="absolute top-0 left-0 h-full bg-red-600 z-10" style={{ width: `${(currentTime / duration) * 100}%` }} />
               <input type="range" min="0" max={duration} value={currentTime} onChange={handleSeek} className="absolute inset-0 w-full opacity-0 cursor-pointer z-20" />
            </div>
         </div>
+
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6 md:gap-10">
-            <button onClick={togglePlay} className="hover:scale-110 transition-transform text-white">{isPlaying ? <Pause className="h-10 w-10 fill-white" /> : <Play className="h-10 w-10 fill-white" />}</button>
-            <button onClick={() => skip(-10)} className="hover:scale-110 transition-transform flex flex-col items-center text-white"><Rewind className="h-8 w-8 fill-white" /><span className="text-[10px] font-bold mt-1">10</span></button>
-            <button onClick={() => skip(10)} className="hover:scale-110 transition-transform flex flex-col items-center text-white"><FastForward className="h-8 w-8 fill-white" /><span className="text-[10px] font-bold mt-1">10</span></button>
-            <button onClick={() => setIsMuted(!isMuted)} className="hover:scale-110 transition-transform text-white">
-              {isMuted ? <VolumeX className="h-8 w-8 text-yellow-400" /> : <Volume2 className="h-8 w-8" />}
+          <div className="flex items-center gap-4 md:gap-10">
+            <button onClick={() => skip(-10)} className="text-white active:scale-90"><Rewind className="h-7 w-7 md:h-10 md:w-10 fill-white" /></button>
+            <button onClick={togglePlay} className="text-white active:scale-90">
+              {isPlaying ? <Pause className="h-8 w-8 md:h-12 md:w-12 fill-white" /> : <Play className="h-8 w-8 md:h-12 md:w-12 fill-white" />}
+            </button>
+            <button onClick={() => skip(10)} className="text-white active:scale-90"><FastForward className="h-7 w-7 md:h-10 md:w-10 fill-white" /></button>
+            <button onClick={() => setIsMuted(!isMuted)} className="text-white active:scale-90">
+              {isMuted ? <VolumeX className="h-7 w-7 md:h-10 md:w-10 text-yellow-400" /> : <Volume2 className="h-7 w-7 md:h-10 md:w-10" />}
             </button>
           </div>
-          <div className="flex items-center gap-6 md:gap-8 text-white">
-            <button className="hover:scale-110 transition-transform"><Subtitles className="h-7 w-7" /></button>
-            <button onClick={() => setShowSettings(!showSettings)} className={`hover:scale-110 transition-transform ${showSettings ? "text-yellow-400" : ""}`}><Settings className="h-7 w-7" /></button>
-            <button onClick={toggleFullscreen} className="hover:scale-110 transition-transform"><Maximize className={`h-7 w-7 ${isFullscreen ? "text-yellow-400" : ""}`} /></button>
+
+          <div className="flex items-center gap-4 md:gap-8 text-white">
+            <button className="hidden sm:block"><Subtitles className="h-6 w-6 md:h-8 md:w-8" /></button>
+            <button onClick={() => setShowSettings(!showSettings)} className={showSettings ? "text-yellow-400" : ""}><Settings className="h-6 w-6 md:h-8 md:w-8" /></button>
+            <button onClick={toggleFullscreen}><Maximize className={`h-6 w-6 md:h-8 md:w-8 ${isFullscreen ? "text-yellow-400" : ""}`} /></button>
           </div>
         </div>
       </div>
