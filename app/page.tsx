@@ -1,27 +1,13 @@
+import CarouselHero from "@/components/carousel-hero";
 import Navbar from "@/components/navbar";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1">
+    <main className="relative flex min-h-screen flex-col overflow-x-hidden">
       <Navbar />
-      <Card className="max-w-sm">
-        <CardHeader>
-          <CardTitle>Project Overview</CardTitle>
-          <CardDescription>
-            Track progress and recent activity for your Next.js app.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          Your design system is ready. Start building your next component.
-        </CardContent>
-      </Card>
-    </div>
+      <CarouselHero />
+      {/* สามารถเพิ่ม Content อื่นๆ ต่อท้ายได้ที่นี่ */}
+    </main>
   );
 }
+
