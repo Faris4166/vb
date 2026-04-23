@@ -112,9 +112,6 @@ export default function PlayerPage() {
           <ArrowLeft className="h-6 w-6 md:h-10 md:w-10" />
           <span className="text-lg md:text-2xl font-bold truncate max-w-[200px] md:max-w-none">{movie.title}</span>
         </button>
-        <button onClick={() => router.back()} className="h-10 w-10 md:h-12 md:w-12 flex items-center justify-center rounded-full bg-white/10 text-white">
-          <X className="h-6 w-6 md:h-8 md:w-8" />
-        </button>
       </div>
 
       {/* Settings Menu */}
