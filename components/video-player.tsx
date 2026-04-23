@@ -52,11 +52,10 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
     const handlePlay = async () => {
       if (playing) {
         try {
-          // ใช้การรอสถานะความพร้อมเล็กน้อยก่อนเริ่มเล่นจริง
           await video.play();
         } catch (e: any) {
           if (e.name === "AbortError") {
-            // ปล่อยผ่านหากเป็น AbortError จากการสลับหน้า
+            // Ignore abort
           } else {
             console.warn("Playback error:", e);
           }
@@ -157,13 +156,28 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
     }
   };
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
-      setIsFullscreen(true);
-    } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (containerRef.current?.requestFullscreen) {
+          await containerRef.current.requestFullscreen();
+        } else if ((containerRef.current as any).webkitRequestFullscreen) {
+          await (containerRef.current as any).webkitRequestFullscreen();
+        } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
+          // iOS Safari fallback
+          (videoRef.current as any).webkitEnterFullscreen();
+        }
+        setIsFullscreen(true);
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen();
+        }
+        setIsFullscreen(false);
+      }
+    } catch (err) {
+      console.warn("Fullscreen error:", err);
     }
   };
 
@@ -214,9 +228,16 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
 
       {/* Overlay - Click to toggle play */}
       <div 
-        className="absolute inset-0 z-10"
+        className="absolute inset-0 z-10 flex items-center justify-center cursor-pointer"
         onClick={togglePlay}
-      />
+      >
+        {/* Big Play Button - Shows only when not playing */}
+        {!playing && (
+          <div className="group/playbtn bg-yellow-400/90 hover:bg-yellow-400 p-6 md:p-8 rounded-full shadow-[0_0_50px_rgba(250,204,21,0.3)] transform transition-all duration-300 hover:scale-110 active:scale-90">
+            <Play className="h-10 w-10 md:h-16 md:w-16 fill-black text-black ml-1" />
+          </div>
+        )}
+      </div>
 
       {/* Controls Container */}
       <div className={`absolute inset-0 z-20 flex flex-col justify-between transition-opacity duration-500 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
