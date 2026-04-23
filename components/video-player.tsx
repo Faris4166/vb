@@ -30,8 +30,16 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
 
   const [currentSrc, setCurrentSrc] = useState(src);
 
-  const [playing, setPlaying] = useState(false);
-  const [muted, setMuted] = useState(true);
+  // Sync currentSrc with src prop when it changes
+  useEffect(() => {
+    setCurrentSrc(src);
+    if (videoRef.current) {
+      videoRef.current.load();
+    }
+  }, [src]);
+
+  const [playing, setPlaying] = useState(true);
+  const [muted, setMuted] = useState(false);
   const [volume, setVolume] = useState(0.8);
   const [played, setPlayed] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -54,12 +62,21 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
         try {
           await video.play();
         } catch (e: any) {
-          if (e.name === "AbortError") {
+          if (e.name === "NotAllowedError") {
+            // Browser blocked auto-play with sound, try muted
+            console.warn("Auto-play with sound blocked, muting...");
+            setMuted(true);
+            try {
+              await video.play();
+            } catch (err) {
+              setPlaying(false);
+            }
+          } else if (e.name === "AbortError") {
             // Ignore abort
           } else {
             console.warn("Playback error:", e);
+            if (isMounted) setPlaying(false);
           }
-          if (isMounted) setPlaying(false);
         }
       } else {
         video.pause();
@@ -231,8 +248,8 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
         className="absolute inset-0 z-10 flex items-center justify-center cursor-pointer"
         onClick={togglePlay}
       >
-        {/* Big Play Button - Shows only when not playing */}
-        {!playing && (
+        {/* Big Play Button - Shows only when paused by user */}
+        {!playing && isReady && (
           <div className="group/playbtn bg-yellow-400/90 hover:bg-yellow-400 p-6 md:p-8 rounded-full shadow-[0_0_50px_rgba(250,204,21,0.3)] transform transition-all duration-300 hover:scale-110 active:scale-90">
             <Play className="h-10 w-10 md:h-16 md:w-16 fill-black text-black ml-1" />
           </div>
