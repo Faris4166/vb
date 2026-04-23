@@ -13,7 +13,6 @@ import {
   Maximize, 
   Settings,
   Subtitles,
-  X,
   Check
 } from "lucide-react";
 
@@ -40,6 +39,40 @@ export default function PlayerPage() {
   const [quality, setQuality] = useState("1080p");
   
   const movie = MOVIES_DETAILS[id as keyof typeof MOVIES_DETAILS];
+
+  // ระบบบังคับแนวนอนและเต็มจออัตโนมัติ
+  useEffect(() => {
+    const enterFullscreenAndLandscape = async () => {
+      try {
+        if (playerContainerRef.current) {
+          // 1. เข้าโหมดเต็มจอ
+          if (playerContainerRef.current.requestFullscreen) {
+            await playerContainerRef.current.requestFullscreen();
+          }
+          
+          // 2. ล็อคหน้าจอเป็นแนวนอน (Landscape)
+          if (typeof screen !== "undefined" && (screen as any).orientation && (screen as any).orientation.lock) {
+            await (screen as any).orientation.lock("landscape");
+          }
+        }
+      } catch (error) {
+        console.log("Auto-landscape ignored by browser security policy. Manual rotation might be needed.", error);
+      }
+    };
+
+    // รอนิดนึงเพื่อให้ Component โหลดเสร็จแล้วค่อยรัน
+    const timer = setTimeout(() => {
+      enterFullscreenAndLandscape();
+    }, 500);
+
+    return () => {
+      clearTimeout(timer);
+      // คืนค่า Orientation เมื่อออกจากหน้า
+      if (typeof screen !== "undefined" && (screen as any).orientation && (screen as any).orientation.unlock) {
+        (screen as any).orientation.unlock();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -70,7 +103,9 @@ export default function PlayerPage() {
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
     setCurrentTime(time);
-    if (videoRef.current) videoRef.current.currentTime = time;
+    if (videoRef.current) {
+      videoRef.current.currentTime = time;
+    }
   };
 
   const toggleFullscreen = () => {
@@ -97,12 +132,13 @@ export default function PlayerPage() {
       <video
         ref={videoRef}
         src={movie.video}
-        className="h-full w-full"
+        className="h-full w-full object-contain md:object-cover"
         onTimeUpdate={() => videoRef.current && setCurrentTime(videoRef.current.currentTime)}
         onLoadedMetadata={() => videoRef.current && setDuration(videoRef.current.duration)}
         onClick={togglePlay}
         autoPlay
         muted={isMuted}
+        playsInline
         onEnded={() => router.back()}
       />
 
@@ -139,7 +175,6 @@ export default function PlayerPage() {
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
-        {/* Progress Bar */}
         <div className="group/progress relative mb-4 md:mb-8">
            <div className="flex justify-between text-[10px] md:text-sm mb-2 font-medium text-gray-300">
              <span>{formatTime(currentTime)}</span>

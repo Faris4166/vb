@@ -66,7 +66,15 @@ export default function WatchDetailsPage() {
           <img src={movie.image} alt={movie.title} className="h-full w-full object-cover animate-in fade-in duration-1000" />
         ) : (
           <div className="relative h-full w-full animate-in fade-in duration-1000">
-            <video src={movie.video} autoPlay muted={isMuted} loop className="h-full w-full object-cover" />
+            {/* เพิ่ม playsInline เพื่อให้เล่นบน iOS ได้ */}
+            <video 
+              src={movie.video} 
+              autoPlay 
+              muted={isMuted} 
+              loop 
+              playsInline 
+              className="h-full w-full object-cover" 
+            />
             <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 flex gap-3 md:gap-4 z-50">
               <button onClick={() => setIsMuted(!isMuted)} className="flex h-10 w-10 md:h-12 md:w-12 items-center justify-center rounded-full bg-white/10 border border-white/20 backdrop-blur-md hover:bg-white/20 transition-all">
                 {isMuted ? <VolumeX className="h-5 w-5 md:h-6 md:w-6" /> : <Volume2 className="h-5 w-5 md:h-6 md:w-6" />}
