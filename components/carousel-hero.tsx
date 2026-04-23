@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import {
   Carousel,
   CarouselContent,
@@ -11,18 +12,20 @@ import { Info, Play, TrendingUp } from "lucide-react";
 
 const MOCK_DATA = [
   {
+    id: "1",
     title: "Oppenheimer",
     titleLogo: "/logo1.png",
     subtitle: "ออปเพนไฮเมอร์",
-    description: "ออพเพนไฮเมอร์ เป็นภาพยนตร์แนวมหากาพย์ ระทึกขวัญ ดราม่า ชีวประวัติ ที่ออกฉายใน ค.ศ. 2023 กำกับและเขียนบทโดย คริสโตเฟอร์ โนแลน สร้างจากหนังสือชีวประวัติอเมริกันโพรมีธีอุส ใน ค.ศ. 2005 ของ ไค เบิร์ด และ มาร์ติน เชอร์วิน",
+    description: "เรื่องราวของ เจ. โรเบิร์ต ออปเพนไฮเมอร์ นักฟิสิกส์ทฤษฎีผู้มีบทบาทสำคัญในการพัฒนาอาวุธนิวเคลียร์ชิ้นแรกของโลกในโครงการแมนฮัตตัน ซึ่งนำไปสู่การสิ้นสุดของสงครามโลกครั้งที่ 2 แต่เขากลับต้องเผชิญกับความขัดแย้งในใจและผลกระทบที่ตามมาอย่างมหาศาล",
     image: "/Oppenheimer.jpg",
     rank: "อันดับ 1 ในไทยวันนี้"
   },
   {
+    id: "2",
     title: "The Batman",
     titleLogo: "/logo2.webp",
     subtitle: "เดอะ แบทแมน",
-    description: "The Batman (2022) เล่าเรื่องราวช่วงปีที่สองของบรูซ เวย์น (โรเบิร์ต แพททินสัน) ในฐานะแบทแมนที่ต้องตามล่าฆาตกรต่อเนื่อง ริดเดลอร์ (พอล ดาโน) ซึ่งมุ่งเป้าสังหารบุคคลสำคัญในเมืองก็อธแฮม บรูซต้องสืบสวนทุจริตลึกซึ้งในเมืองและเผชิญหน้ากับความจริงอันมืดมนของครอบครัวตนเองในบรรยากาศเมืองที่ดาร์กและดิบเถื่อน",
+    description: "บรูซ เวย์น ในปีที่สองของการเป็นแบทแมน ต้องเผชิญหน้ากับฆาตกรต่อเนื่องสุดวิปริต 'ริดเดลอร์' ที่ทิ้งปริศนาไว้ทั่วเมืองก็อธแฮม พร้อมกับการเปิดโปงความฉ้อฉลที่หยั่งรากลึกในเมืองที่เขาสาบานว่าจะปกป้อง",
     image: "/batman.webp",
     rank: "อันดับ 2 ในไทยวันนี้"
   },
@@ -40,7 +43,7 @@ export default function CarouselHero() {
             <CarouselItem key={index} className="pl-0">
               <div className="relative h-[85vh] min-h-[600px] w-full overflow-hidden">
                 
-                {/* 1. Background Image - แก้ไขกลับเป็น h-full w-full เพื่อให้แสดงผลถูกต้อง */}
+                {/* 1. Background Image */}
                 <img
                   src={item.image}
                   alt={item.title}
@@ -61,7 +64,7 @@ export default function CarouselHero() {
                   </div>
 
                   <div className="space-y-4">
-                    {/* 4. Movie Logo - ปรับขนาดให้เล็กลง (max-w-[400px]) ตามที่แจ้งครับ */}
+                    {/* 4. Movie Logo */}
                     {item.titleLogo ? (
                       <div className="max-w-[280px] md:max-w-[400px] animate-in fade-in slide-in-from-left-8 duration-1000">
                         <img 
@@ -85,14 +88,18 @@ export default function CarouselHero() {
                     {item.description}
                   </p>
 
-                  {/* 5. Action Buttons */}
+                  {/* 5. Action Buttons - เพิ่ม Link เพื่อให้กดเข้าดูได้ */}
                   <div className="flex items-center gap-4 pt-4">
-                    <Button size="lg" className="h-12 bg-white text-black hover:bg-yellow-400 hover:text-black px-8 font-black text-lg rounded-xl transition-all hover:scale-105">
-                      <Play className="mr-2 h-5 w-5 fill-black" /> เล่น
-                    </Button>
-                    <Button size="lg" variant="outline" className="h-12 bg-white/10 text-white border-white/20 hover:bg-white/20 px-8 font-bold text-lg rounded-xl backdrop-blur-md transition-all hover:scale-105">
-                      <Info className="mr-2 h-5 w-5" /> ข้อมูลเพิ่มเติม
-                    </Button>
+                    <Link href={`/watch/${item.id}`}>
+                      <Button size="lg" className="h-12 bg-white text-black hover:bg-yellow-400 hover:text-black px-8 font-black text-lg rounded-xl transition-all hover:scale-105">
+                        <Play className="mr-2 h-5 w-5 fill-black" /> เล่น
+                      </Button>
+                    </Link>
+                    <Link href={`/watch/${item.id}`}>
+                      <Button size="lg" variant="outline" className="h-12 bg-white/10 text-white border-white/20 hover:bg-white/20 px-8 font-bold text-lg rounded-xl backdrop-blur-md transition-all hover:scale-105">
+                        <Info className="mr-2 h-5 w-5" /> ข้อมูลเพิ่มเติม
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
