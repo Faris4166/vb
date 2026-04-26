@@ -22,9 +22,11 @@ interface VideoPlayerProps {
   title: string;
   poster: string;
   onEnded?: () => void;
+  hasNext?: boolean;
+  onNext?: () => void;
 }
 
-export default function VideoPlayer({ src, qualities = {}, title, poster, onEnded }: VideoPlayerProps) {
+export default function VideoPlayer({ src, qualities = {}, title, poster, onEnded, hasNext, onNext }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -293,6 +295,17 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
               <button onClick={(e) => { e.stopPropagation(); skip(10); }} className="text-white hover:text-yellow-400 transition-colors">
                 <FastForward className="h-6 w-6 md:h-10 md:w-10 fill-current" />
               </button>
+              
+              {hasNext && (
+                <button 
+                  onClick={(e) => { e.stopPropagation(); onNext?.(); }} 
+                  className="flex items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 bg-white/20 hover:bg-yellow-400 hover:text-black backdrop-blur-md rounded-lg text-white font-bold text-xs md:text-sm transition-all"
+                >
+                  <FastForward className="h-4 w-4 md:h-5 md:w-5 fill-current" />
+                  ตอนต่อไป
+                </button>
+              )}
+
               <div className="flex items-center gap-2 group/volume">
                 <button onClick={(e) => { e.stopPropagation(); toggleMute(); }} className="text-white">
                   {muted || volume === 0 ? <VolumeX className="h-6 w-6 md:h-8 md:w-8 text-red-500" /> : <Volume2 className="h-6 w-6 md:h-8 md:w-8" />}

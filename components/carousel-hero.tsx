@@ -8,28 +8,15 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import { Button } from "@/components/ui/button";
-import { Info, Play, TrendingUp } from "lucide-react";
+import { Info, Play } from "lucide-react";
 
-const MOCK_DATA = [
-  {
-    id: "1",
-    title: "Oppenheimer",
-    titleLogo: "/logo1.png",
-    subtitle: "ออปเพนไฮเมอร์",
-    description: "เรื่องราวของ เจ. โรเบิร์ต ออปเพนไฮเมอร์ นักฟิสิกส์ทฤษฎีผู้มีบทบาทสำคัญในการพัฒนาอาวุธนิวเคลียร์ชิ้นแรกของโลกในโครงการแมนฮัตตัน ซึ่งนำไปสู่การสิ้นสุดของสงครามโลกครั้งที่ 2 แต่เขากลับต้องเผชิญกับความขัดแย้งในใจและผลกระทบที่ตามมาอย่างมหาศาล",
-    image: "/Oppenheimer.jpg",
-  },
-  {
-    id: "2",
-    title: "The Batman",
-    titleLogo: "/logo2.webp",
-    subtitle: "เดอะ แบทแมน",
-    description: "บรูซ เวย์น ในปีที่สองของการเป็นแบทแมน ต้องเผชิญหน้ากับฆาตกรต่อเนื่องสุดวิปริต 'ริดเดลอร์' ที่ทิ้งปริศนาไว้ทั่วเมืองก็อธแฮม พร้อมกับการเปิดโปงความฉ้อฉลที่หยั่งรากลึกในเมืองที่เขาสาบานว่าจะปกป้อง",
-    image: "/batman.webp",
-  },
-];
+interface CarouselHeroProps {
+  movies: any[];
+}
 
-export default function CarouselHero() {
+export default function CarouselHero({ movies }: CarouselHeroProps) {
+  if (!movies || movies.length === 0) return null;
+
   return (
     <section className="w-full bg-black">
       <Carousel
@@ -37,14 +24,13 @@ export default function CarouselHero() {
         className="w-full"
       >
         <CarouselContent className="-ml-0">
-          {MOCK_DATA.map((item, index) => (
+          {movies.map((item, index) => (
             <CarouselItem key={index} className="pl-0">
-              {/* ปรับความสูง Mobile เป็น 70vh และ Desktop เป็น 85vh */}
               <div className="relative h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[600px] w-full overflow-hidden">
                 
                 {/* Background Image */}
                 <img
-                  src={item.image}
+                  src={item.image_url}
                   alt={item.title}
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 md:hover:scale-105"
                 />
@@ -58,11 +44,11 @@ export default function CarouselHero() {
                 <div className="relative h-full flex flex-col justify-end pb-20 md:justify-center pt-24 md:pt-32 px-6 md:px-16 lg:px-24 max-w-4xl space-y-4 md:space-y-6">
                   
                   <div className="space-y-3 md:space-y-4">
-                    {/* Movie Logo - ปรับขนาด Mobile ให้เล็กลง */}
-                    {item.titleLogo && (
+                    {/* Movie Logo */}
+                    {item.title_logo_url && (
                       <div className="max-w-[200px] xs:max-w-[250px] md:max-w-[400px] animate-in fade-in slide-in-from-left-8 duration-1000">
                         <img 
-                          src={item.titleLogo} 
+                          src={item.title_logo_url} 
                           alt={item.title} 
                           className="h-auto w-full object-contain drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                         />
@@ -97,7 +83,7 @@ export default function CarouselHero() {
           ))}
         </CarouselContent>
         
-        {/* Navigation Arrows - ซ่อนบน Mobile หรือปรับขนาด */}
+        {/* Navigation Arrows */}
         <div className="absolute right-6 bottom-6 md:right-12 md:bottom-12 flex gap-3 z-20">
           <CarouselPrevious className="static h-10 w-10 md:h-12 md:w-12 translate-y-0 bg-black/40 border-white/10 text-white backdrop-blur-xl" />
           <CarouselNext className="static h-10 w-10 md:h-12 md:w-12 translate-y-0 bg-black/40 border-white/10 text-white backdrop-blur-xl" />
