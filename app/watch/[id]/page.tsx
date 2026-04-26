@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { 
   ArrowLeft, 
@@ -30,6 +30,8 @@ function PlayerContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const epId = searchParams.get('ep');
+  const [initialStartTime, setInitialStartTime] = useState(0);
+  const lastSavedRef = useRef<number>(0);
   const supabase = createClient();
 
   const [movie, setMovie] = useState<any>(null);
@@ -60,11 +62,12 @@ function PlayerContent() {
     }
 
     // 3. Handle Content (Movie vs Episode)
+    let currentEp = null;
     if (movieData?.type === 'series') {
       const { data: eps } = await supabase.from('episodes').select('*').eq('movie_id', id).order('created_at', { ascending: true });
       setEpisodes(eps || []);
       
-      const currentEp = eps?.find(e => e.id === epId) || eps?.[0];
+      currentEp = eps?.find(e => e.id === epId) || eps?.[0];
       setEpisode(currentEp);
 
       // Check Unlock Status
@@ -87,6 +90,23 @@ function PlayerContent() {
         }
       }
     }
+
+    // Load Watch History
+    if (user) {
+      const { data: history } = await supabase
+        .from('watch_history')
+        .select('last_position')
+        .eq('user_id', user.id)
+        .eq('movie_id', id)
+        .eq(movieData?.type === 'series' ? 'episode_id' : 'movie_id', movieData?.type === 'series' ? currentEp?.id : id)
+        .maybeSingle();
+      
+      if (history) {
+        setInitialStartTime(history.last_position);
+        lastSavedRef.current = history.last_position;
+      }
+    }
+
     setLoading(false);
   };
 
@@ -129,6 +149,24 @@ function PlayerContent() {
       alert("เกิดข้อผิดพลาด: " + error.message);
     } finally {
       setUnlocking(false);
+    }
+  };
+
+  const handleProgress = async (currentTime: number, duration: number) => {
+    // Save every 10 seconds or when significant progress is made
+    if (Math.abs(currentTime - lastSavedRef.current) > 10) {
+      lastSavedRef.current = currentTime;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      await supabase.from('watch_history').upsert({
+        user_id: user.id,
+        movie_id: id,
+        episode_id: movie?.type === 'series' ? episode?.id : null,
+        last_position: currentTime,
+        duration: duration,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,movie_id,episode_id' });
     }
   };
 
@@ -178,6 +216,8 @@ function PlayerContent() {
             src={videoUrl} 
             title={movie.type === 'series' ? `${movie.title} - ${episode?.title}` : movie.title}
             poster={movie.image_url}
+            startTime={initialStartTime}
+            onProgress={handleProgress}
           />
         ) : (
           <div className="absolute inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl">

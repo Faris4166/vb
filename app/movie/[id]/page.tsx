@@ -40,6 +40,7 @@ export default function MovieDetailsPage() {
   const [isMuted, setIsMuted] = useState(true);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [purchases, setPurchases] = useState<any[]>([]);
+  const [detectedDuration, setDetectedDuration] = useState<string | null>(null);
   
   const supabase = createClient();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -64,13 +65,15 @@ export default function MovieDetailsPage() {
       setMovie(movieData);
 
       // 2. Get Episodes if series
+      let epData = [];
       if (movieData.type === 'series') {
-        const { data: epData } = await supabase
+        const { data } = await supabase
           .from('episodes')
           .select('*')
           .eq('movie_id', id)
           .order('created_at', { ascending: true });
-        setEpisodes(epData || []);
+        epData = data || [];
+        setEpisodes(epData);
       }
 
       // 3. Check Watchlist & Purchases
@@ -88,6 +91,29 @@ export default function MovieDetailsPage() {
           .eq('movie_id', id)
           .single();
         setIsInWatchlist(!!watchlistData);
+      }
+
+      // Auto-detect duration if missing
+      const videoToCheck = movieData.video_url || epData?.[0]?.video_url;
+      if (videoToCheck && !movieData.duration) {
+        const video = document.createElement('video');
+        video.preload = 'metadata';
+        video.onloadedmetadata = () => {
+          const duration = video.duration;
+          const hours = Math.floor(duration / 3600);
+          const minutes = Math.floor((duration % 3600) / 60);
+          const seconds = Math.floor(duration % 60);
+          
+          let formatted = "";
+          if (hours > 0) formatted = `${hours}h ${minutes}m`;
+          else if (minutes > 0) formatted = `${minutes}:${seconds.toString().padStart(2, '0')}m`;
+          else formatted = `${seconds}s`;
+          
+          setDetectedDuration(formatted);
+          // อัปเดตลง DB ลับๆ ด้วยเพื่อให้ครั้งหน้าโหลดเร็วขึ้น
+          supabase.from('movies').update({ duration: formatted }).eq('id', id).then();
+        };
+        video.src = videoToCheck;
       }
 
     } catch (error) {
@@ -182,7 +208,12 @@ export default function MovieDetailsPage() {
             <span className="text-green-500">98% Match</span>
             <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {movie.year}</span>
             <Badge variant="outline" className="text-white border-white/20">HD</Badge>
-            <span className="flex items-center gap-1"><Clock className="h-4 w-4" /> 2h 15m</span>
+            {(movie.duration || detectedDuration) && (
+              <span className="flex items-center gap-1">
+                <Clock className="h-4 w-4" /> 
+                {movie.duration || detectedDuration}
+              </span>
+            )}
           </div>
 
           <p className="text-sm md:text-lg text-gray-300 line-clamp-3 md:line-clamp-none max-w-2xl font-medium leading-relaxed">
@@ -246,6 +277,7 @@ export default function MovieDetailsPage() {
                     <div>
                       <h4 className="font-black text-sm uppercase italic flex items-center justify-between">
                         <span>EP {idx + 1}: {ep.title}</span>
+                        {ep.duration && <span className="text-[10px] text-gray-500">{ep.duration}</span>}
                       </h4>
                       {ep.price_coins > 0 && !isPurchased && (
                         <div className="flex items-center gap-1 mt-1 text-yellow-400">

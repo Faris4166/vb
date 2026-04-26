@@ -55,6 +55,7 @@ export default function EditMoviePage() {
     description: "",
     year: "2024",
     genre: "Action",
+    duration: "",
     is_premium: false,
     price_coins: 0,
     image_url: "",
@@ -86,6 +87,7 @@ export default function EditMoviePage() {
         description: movie.description || "",
         year: movie.year || "2024",
         genre: movie.genre || "Action",
+        duration: movie.duration || "",
         is_premium: movie.is_premium || false,
         price_coins: movie.price_coins || 0,
         image_url: movie.image_url || "",
@@ -149,6 +151,29 @@ export default function EditMoviePage() {
       .getPublicUrl(filePath);
 
     return publicUrl;
+  };
+
+  const getVideoDuration = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const video = document.createElement('video');
+      video.preload = 'metadata';
+      video.onloadedmetadata = () => {
+        window.URL.revokeObjectURL(video.src);
+        const duration = video.duration;
+        const hours = Math.floor(duration / 3600);
+        const minutes = Math.floor((duration % 3600) / 60);
+        const seconds = Math.floor(duration % 60);
+        
+        if (hours > 0) {
+          resolve(`${hours}h ${minutes}m`);
+        } else if (minutes > 0) {
+          resolve(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+        } else {
+          resolve(`${seconds}s`);
+        }
+      };
+      video.src = URL.createObjectURL(file);
+    });
   };
 
   const handleAddEpisode = () => {
@@ -470,7 +495,19 @@ export default function EditMoviePage() {
                                        </div>
                                     ) : (
                                        <>
-                                          <input type="file" accept="video/*" onChange={(e) => handleEpisodeChange(index, 'file', e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                                          <input 
+                                            type="file" 
+                                            accept="video/*" 
+                                            onChange={async (e) => {
+                                               const file = e.target.files?.[0];
+                                               if (file) {
+                                                 handleEpisodeChange(index, 'file', file);
+                                                 const duration = await getVideoDuration(file);
+                                                 handleEpisodeChange(index, 'duration', duration);
+                                               }
+                                            }} 
+                                            className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                                          />
                                           <div className="flex flex-col items-center">
                                             <Upload className="h-6 w-6 text-gray-600 mb-1" />
                                             <p className="text-[10px] font-black uppercase text-gray-500">อัปโหลดไฟล์ใหม่ (ข้ามได้ถ้าใช้ไฟล์เดิม)</p>

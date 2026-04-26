@@ -24,9 +24,11 @@ interface VideoPlayerProps {
   onEnded?: () => void;
   hasNext?: boolean;
   onNext?: () => void;
+  startTime?: number; // เริ่มต้นที่วินาทีที่...
+  onProgress?: (currentTime: number, duration: number) => void;
 }
 
-export default function VideoPlayer({ src, qualities = {}, title, poster, onEnded, hasNext, onNext }: VideoPlayerProps) {
+export default function VideoPlayer({ src, qualities = {}, title, poster, onEnded, hasNext, onNext, startTime = 0, onProgress }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -114,13 +116,26 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
 
   const handleTimeUpdate = () => {
     if (!seeking && videoRef.current) {
-      setPlayed(videoRef.current.currentTime / videoRef.current.duration);
+      const currentTime = videoRef.current.currentTime;
+      const duration = videoRef.current.duration;
+      setPlayed(currentTime / duration);
+      onProgress?.(currentTime, duration);
     }
   };
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
+      
+      // ข้ามไปยังเวลาที่ดูค้างไว้
+      if (startTime > 0) {
+        videoRef.current.currentTime = startTime;
+      }
+      
+      const width = videoRef.current.videoWidth;
+      const height = videoRef.current.videoHeight;
+      const label = height >= 2160 ? "4K" : height >= 1080 ? "1080p" : height >= 720 ? "720p" : "SD";
+      setQuality(`${label} (Original)`);
       setIsReady(true);
       setIsLoading(false);
     }
@@ -344,7 +359,10 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
                         </button>
                       ))
                     ) : (
-                      <p className="px-2 py-1 text-xs text-gray-500">ไม่มีตัวเลือกความละเอียด</p>
+                      <div className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-sm bg-yellow-400 text-black font-bold">
+                        {quality}
+                        <Check className="h-4 w-4" />
+                      </div>
                     )}
                   </div>
                 )}
