@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase";
+import { SkeletonDetails } from "@/components/skeleton-loaders";
 import { 
   Tabs, 
   TabsContent, 
@@ -143,13 +144,7 @@ export default function MovieDetailsPage() {
     }
   }, [movie]);
 
-  if (loading) {
-    return (
-      <div className="h-screen w-screen bg-[#050505] flex items-center justify-center">
-        <Loader2 className="h-10 w-10 animate-spin text-yellow-400" />
-      </div>
-    );
-  }
+  if (loading) return <SkeletonDetails />;
 
   if (!movie) {
     return (

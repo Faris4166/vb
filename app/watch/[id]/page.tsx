@@ -159,14 +159,17 @@ function PlayerContent() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      await supabase.from('watch_history').upsert({
-        user_id: user.id,
-        movie_id: id,
-        episode_id: movie?.type === 'series' ? episode?.id : null,
-        last_position: currentTime,
-        duration: duration,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'user_id,movie_id,episode_id' });
+      await fetch('/api/watch-history', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          user_id: user.id,
+          movie_id: id,
+          episode_id: movie?.type === 'series' ? episode?.id : null,
+          last_position: currentTime,
+          duration: duration
+        })
+      });
     }
   };
 

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Play } from "lucide-react";
 
 interface MovieCardProps {
@@ -14,10 +15,12 @@ export default function MovieCard({ id, title, image, rating, year }: MovieCardP
     <Link href={`/movie/${id}`} className="group relative block w-full">
       {/* 1. Image Container */}
       <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-white/5 bg-gray-900 shadow-lg transition-all duration-300 group-hover:z-30 group-hover:scale-105 group-hover:border-yellow-400/50 group-hover:shadow-yellow-400/20">
-        <img
+        <Image
           src={image}
           alt={title}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+          fill
+          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 20vw, 15vw"
+          className="object-cover transition-transform duration-500 group-hover:scale-110"
         />
         
         {/* 2. Overlay on Hover */}

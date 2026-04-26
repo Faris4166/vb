@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Carousel,
   CarouselContent,
@@ -29,9 +30,11 @@ export default function CarouselHero({ movies }: CarouselHeroProps) {
               <div className="relative h-[70vh] md:h-[85vh] min-h-[500px] md:min-h-[600px] w-full overflow-hidden">
                 
                 {/* Background Image */}
-                <img
+                <Image
                   src={item.image_url}
                   alt={item.title}
+                  fill
+                  priority={index === 0}
                   className="absolute inset-0 h-full w-full object-cover transition-transform duration-1000 md:hover:scale-105"
                 />
 
@@ -47,9 +50,11 @@ export default function CarouselHero({ movies }: CarouselHeroProps) {
                     {/* Movie Logo */}
                     {item.title_logo_url && (
                       <div className="max-w-[200px] xs:max-w-[250px] md:max-w-[400px] animate-in fade-in slide-in-from-left-8 duration-1000">
-                        <img 
+                        <Image 
                           src={item.title_logo_url} 
                           alt={item.title} 
+                          width={400}
+                          height={200}
                           className="h-auto w-full object-contain drop-shadow-[0_0_15px_rgba(0,0,0,0.5)]"
                         />
                       </div>
