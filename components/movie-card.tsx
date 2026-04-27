@@ -1,16 +1,32 @@
 import Link from "next/link";
 import Image from "next/image";
-import { Play } from "lucide-react";
+import { Play, Coins, Calendar, CheckCircle2 } from "lucide-react";
+import { format, isAfter } from "date-fns";
+import { th } from "date-fns/locale";
 
 interface MovieCardProps {
   id: string | number;
   title: string;
   image: string;
-  rating?: string;
   year?: string;
+  price_coins?: number;
+  free_at?: string | null;
+  is_purchased?: boolean;
+  is_premium?: boolean;
 }
 
-export default function MovieCard({ id, title, image, rating, year }: MovieCardProps) {
+export default function MovieCard({ 
+  id, 
+  title, 
+  image, 
+  year,
+  price_coins = 0,
+  free_at,
+  is_purchased = false,
+  is_premium = false
+}: MovieCardProps) {
+  const isFreeSoon = free_at && isAfter(new Date(free_at), new Date());
+  
   return (
     <Link href={`/movie/${id}`} className="group relative block w-full">
       {/* 1. Image Container */}
@@ -30,15 +46,31 @@ export default function MovieCard({ id, title, image, rating, year }: MovieCardP
           </div>
         </div>
 
-        {/* 3. Top Info Badge (Optional) */}
-        {rating && (
-          <div className="absolute top-2 right-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-bold text-yellow-400 backdrop-blur-md border border-white/10">
-            {rating}
+        {/* 3. Status Badges */}
+        <div className="absolute top-2 left-2 flex flex-col gap-1">
+          {is_purchased && (
+            <div className="rounded-md bg-green-500 px-2 py-0.5 text-[9px] font-black text-white uppercase italic shadow-lg flex items-center gap-1">
+              <CheckCircle2 className="h-2 w-2" /> ซื้อแล้ว
+            </div>
+          )}
+          {!is_purchased && price_coins > 0 && (
+            <div className="rounded-md bg-yellow-400 px-2 py-0.5 text-[9px] font-black text-black uppercase italic shadow-lg flex items-center gap-1">
+              <Coins className="h-2 w-2 fill-black" /> {price_coins} Coins
+            </div>
+          )}
+        </div>
+
+        {/* 5. Wait-to-unlock info */}
+        {isFreeSoon && !is_purchased && (
+          <div className="absolute bottom-0 left-0 right-0 bg-blue-600/90 backdrop-blur-sm py-1 px-2 text-center">
+            <p className="text-[8px] font-black uppercase text-white flex items-center justify-center gap-1">
+              <Calendar className="h-2 w-2" /> ดูฟรี {format(new Date(free_at!), "d MMM", { locale: th })}
+            </p>
           </div>
         )}
       </div>
 
-      {/* 4. Movie Info */}
+      {/* 6. Movie Info */}
       <div className="mt-3 space-y-1 px-1">
         <h3 className="truncate text-sm font-bold text-white transition-colors group-hover:text-yellow-400">
           {title}
@@ -46,7 +78,13 @@ export default function MovieCard({ id, title, image, rating, year }: MovieCardP
         <div className="flex items-center gap-2 text-[11px] text-gray-400">
           {year && <span>{year}</span>}
           {year && <span className="h-1 w-1 rounded-full bg-gray-600" />}
-          <span className="uppercase">Premium</span>
+          {is_purchased ? (
+            <span className="text-green-500 font-bold uppercase italic">Owned</span>
+          ) : price_coins > 0 ? (
+            <span className="text-yellow-400 font-bold uppercase italic">Premium</span>
+          ) : (
+            <span className="uppercase italic">Free</span>
+          )}
         </div>
       </div>
     </Link>

@@ -42,10 +42,34 @@ function PlayerContent() {
   const [profile, setProfile] = useState<any>(null);
   const [unlocking, setUnlocking] = useState(false);
   const [showEpisodes, setShowEpisodes] = useState(false);
+  const [viewCounted, setViewCounted] = useState(false);
 
   useEffect(() => {
     fetchData();
   }, [id, epId]);
+
+  useEffect(() => {
+    if (isUnlocked && movie && !viewCounted && !loading) {
+      handleIncrementView();
+    }
+  }, [isUnlocked, movie, viewCounted, loading]);
+
+  const handleIncrementView = async () => {
+    const sessionKey = `viewed_${id}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+
+    try {
+      // Increment views using Supabase RPC or direct update
+      await supabase.rpc('increment_movie_views', { movie_id: id });
+      sessionStorage.setItem(sessionKey, 'true');
+      setViewCounted(true);
+    } catch (error) {
+      // Fallback to direct update if RPC is not available
+      await supabase.from('movies').update({ 
+        views: (movie.views || 0) + 1 
+      }).eq('id', id);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);

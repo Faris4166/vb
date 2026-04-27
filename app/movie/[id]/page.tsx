@@ -17,8 +17,11 @@ import {
   Calendar,
   ChevronRight,
   Coins,
-  CheckCircle2
+  CheckCircle2,
+  X
 } from "lucide-react";
+import { format, isAfter } from "date-fns";
+import { th } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { createClient } from "@/lib/supabase";
@@ -41,6 +44,7 @@ export default function MovieDetailsPage() {
   const [isMuted, setIsMuted] = useState(true);
   const [isInWatchlist, setIsInWatchlist] = useState(false);
   const [purchases, setPurchases] = useState<any[]>([]);
+  const [similarMovies, setSimilarMovies] = useState<any[]>([]);
   const [detectedDuration, setDetectedDuration] = useState<string | null>(null);
   
   const supabase = createClient();
@@ -116,6 +120,15 @@ export default function MovieDetailsPage() {
         };
         video.src = videoToCheck;
       }
+
+      // 4. Get Similar Movies
+      const { data: similarData } = await supabase
+        .from('movies')
+        .select('*')
+        .eq('genre', movieData.genre)
+        .neq('id', id)
+        .limit(6);
+      setSimilarMovies(similarData || []);
 
     } catch (error) {
       console.error("Error fetching movie:", error);
@@ -200,7 +213,6 @@ export default function MovieDetailsPage() {
           )}
 
           <div className="flex items-center gap-4 text-sm md:text-base font-bold text-gray-300">
-            <span className="text-green-500">98% Match</span>
             <span className="flex items-center gap-1"><Calendar className="h-4 w-4" /> {movie.year}</span>
             <Badge variant="outline" className="text-white border-white/20">HD</Badge>
             {(movie.duration || detectedDuration) && (
@@ -208,6 +220,25 @@ export default function MovieDetailsPage() {
                 <Clock className="h-4 w-4" /> 
                 {movie.duration || detectedDuration}
               </span>
+            )}
+            
+            {/* Purchase & Free Status Badge */}
+            {purchases.some(p => p.movie_id === id) ? (
+              <Badge className="bg-green-500 text-white border-0 flex gap-1 items-center">
+                <CheckCircle2 className="h-3 w-3" /> ซื้อแล้ว
+              </Badge>
+            ) : movie.price_coins > 0 ? (
+              <Badge className="bg-yellow-400 text-black border-0 flex gap-1 items-center">
+                <Coins className="h-3 w-3 fill-black" /> {movie.price_coins} Coins
+              </Badge>
+            ) : (
+              <Badge className="bg-blue-500 text-white border-0">ดูฟรี</Badge>
+            )}
+
+            {movie.free_at && isAfter(new Date(movie.free_at), new Date()) && !purchases.some(p => p.movie_id === id) && (
+              <Badge className="bg-blue-600/50 backdrop-blur-md text-white border-blue-400/30 flex gap-1 items-center">
+                <Calendar className="h-3 w-3" /> ดูฟรี {format(new Date(movie.free_at), "d MMM", { locale: th })}
+              </Badge>
             )}
           </div>
 
@@ -251,21 +282,31 @@ export default function MovieDetailsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {episodes.map((ep, idx) => {
                 const isPurchased = purchases.some(p => p.episode_id === ep.id || p.movie_id === id);
+                const isFreeSoon = ep.free_at && isAfter(new Date(ep.free_at), new Date());
+                
                 return (
                   <div 
                     key={ep.id}
                     onClick={() => router.push(`/watch/${id}?ep=${ep.id}`)}
-                    className="group cursor-pointer space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-all"
+                    className="group cursor-pointer space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5 hover:bg-white/10 transition-all relative"
                   >
                     <div className="relative aspect-video rounded-xl overflow-hidden">
-                      <img src={ep.thumbnail_url || movie.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                      <img src={ep.image_url || movie.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Play className="h-10 w-10 text-white fill-white" />
                       </div>
                       
                       {isPurchased && (
-                        <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-[9px] font-black uppercase rounded-lg shadow-lg">
-                          ซื้อแล้ว
+                        <div className="absolute top-2 right-2 px-2 py-1 bg-green-500 text-white text-[9px] font-black uppercase rounded-lg shadow-lg flex items-center gap-1">
+                          <CheckCircle2 className="h-2.5 w-2.5" /> ซื้อแล้ว
+                        </div>
+                      )}
+
+                      {!isPurchased && isFreeSoon && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-blue-600/90 backdrop-blur-sm py-1 px-2 text-center">
+                          <p className="text-[9px] font-black uppercase text-white flex items-center justify-center gap-1">
+                            <Calendar className="h-2.5 w-2.5" /> ดูฟรี {format(new Date(ep.free_at), "d MMM", { locale: th })}
+                          </p>
                         </div>
                       )}
                     </div>
@@ -276,7 +317,7 @@ export default function MovieDetailsPage() {
                       </h4>
                       {ep.price_coins > 0 && !isPurchased && (
                         <div className="flex items-center gap-1 mt-1 text-yellow-400">
-                          <Coins className="h-3 w-3" />
+                          <Coins className="h-3 w-3 fill-yellow-400" />
                           <span className="text-[10px] font-black uppercase">{ep.price_coins} Coins</span>
                         </div>
                       )}
@@ -294,12 +335,28 @@ export default function MovieDetailsPage() {
           </section>
         )}
 
-        {/* More Like This (Optional/Placeholder for now) */}
         <section className="space-y-6">
            <h2 className="text-2xl font-black uppercase italic tracking-tighter">เนื้อหาที่คล้ายกัน</h2>
            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-              {/* ตรงนี้จะเพิ่มระบบแนะนำหนังภายหลัง */}
-              <p className="text-gray-500 text-sm font-bold uppercase tracking-widest italic">Coming Soon...</p>
+              {similarMovies.map((m) => {
+                const isPurchased = purchases.some(p => p.movie_id === m.id);
+                return (
+                  <MovieCard 
+                    key={m.id}
+                    id={m.id}
+                    title={m.title}
+                    image={m.image_url}
+                    year={m.year}
+                    price_coins={m.price_coins}
+                    free_at={m.free_at}
+                    is_purchased={isPurchased}
+                    is_premium={m.is_premium}
+                  />
+                );
+              })}
+              {similarMovies.length === 0 && (
+                <p className="text-gray-500 text-sm font-bold uppercase tracking-widest italic col-span-full">ไม่พบเนื้อหาที่ใกล้เคียง</p>
+              )}
            </div>
         </section>
       </div>

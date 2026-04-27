@@ -85,8 +85,8 @@ export default function Navbar() {
         {/* Logo & Links */}
         <div className="flex items-center gap-6 md:gap-12">
           <Link href="/" className="flex-shrink-0 group">
-            <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter text-white transition-all group-hover:scale-105 group-hover:rotate-1">
-              FLIX<span className="text-yellow-400">.</span>
+            <h1 className="text-3xl md:text-4xl font-black italic tracking-tighter text-white transition-all group-hover:scale-105 group-hover:rotate-1 uppercase">
+              KM<span className="text-yellow-400">niyai</span>
             </h1>
           </Link>
 

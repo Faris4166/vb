@@ -31,9 +31,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 export default function AddMoviePage() {
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState<any[]>([]);
   const [uploading, setUploading] = useState(false);
   const [type, setType] = useState<"movie" | "series">("movie");
   
@@ -46,21 +52,40 @@ export default function AddMoviePage() {
 
   const [formData, setFormData] = useState({
     title: "",
-    subtitle: "",
     description: "",
     year: "2024",
-    genre: "Action",
+    genre: "แอ็คชัน",
     duration: "",
     is_premium: false,
     price_coins: 0,
+    trailer_url: "",
+    free_at: null as Date | null,
   });
 
   const [episodes, setEpisodes] = useState<any[]>([
-    { title: "ตอนที่ 1", description: "", price_coins: 0, file: null, preview: null }
+    { 
+      title: "ตอนที่ 1", 
+      description: "", 
+      duration: "", 
+      price_coins: 0, 
+      file: null, 
+      posterFile: null,
+      posterPreview: null,
+      free_at: null as Date | null 
+    }
   ]);
 
   const supabase = createClient();
   const router = useRouter();
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    const { data } = await supabase.from('categories').select('*').order('name');
+    if (data) setCategories(data);
+  };
 
   // Create Preview when files change
   useEffect(() => {
@@ -131,7 +156,9 @@ export default function AddMoviePage() {
       duration: "",
       price_coins: 0,
       file: null,
-      preview: null
+      posterFile: null,
+      posterPreview: null,
+      free_at: null
     }]);
   };
 
@@ -141,6 +168,19 @@ export default function AddMoviePage() {
 
   const handleEpisodeChange = (index: number, field: string, value: any) => {
     const newEpisodes = [...episodes];
+    
+    // Handle image preview for episodes
+    if (field === 'posterFile') {
+      if (newEpisodes[index].posterPreview) {
+        URL.revokeObjectURL(newEpisodes[index].posterPreview);
+      }
+      if (value) {
+        newEpisodes[index].posterPreview = URL.createObjectURL(value);
+      } else {
+        newEpisodes[index].posterPreview = null;
+      }
+    }
+    
     newEpisodes[index][field] = value;
     setEpisodes(newEpisodes);
   };
@@ -172,7 +212,8 @@ export default function AddMoviePage() {
           image_url: finalImageUrl, 
           title_logo_url: finalLogoUrl,
           video_url: finalVideoUrl,
-          type 
+          type,
+          free_at: formData.free_at ? formData.free_at.toISOString() : null
         }])
         .select()
         .single();
@@ -184,13 +225,21 @@ export default function AddMoviePage() {
         const episodesToInsert = [];
         for (const ep of episodes) {
           if (!ep.file) continue;
+          
           const epVideoUrl = await uploadFile(ep.file, 'episodes');
+          let epPosterUrl = "";
+          if (ep.posterFile) {
+            epPosterUrl = await uploadFile(ep.posterFile, 'episode-posters');
+          }
+
           episodesToInsert.push({
             movie_id: movie.id,
             title: ep.title,
             video_url: epVideoUrl,
+            image_url: epPosterUrl,
             duration: ep.duration,
-            price_coins: ep.price_coins
+            price_coins: ep.price_coins,
+            free_at: ep.free_at ? ep.free_at.toISOString() : null
           });
         }
         if (episodesToInsert.length > 0) {
@@ -251,27 +300,22 @@ export default function AddMoviePage() {
             <TabsContent value="basic" className="space-y-6 animate-in fade-in duration-500">
               <Card className="bg-zinc-900/40 border-white/5 border-0 shadow-2xl">
                 <CardContent className="p-8 space-y-6">
-                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-gray-500">ชื่อเรื่อง</Label>
-                        <Input 
-                          placeholder="ชื่อหนังหรือซีรีส์" 
-                          required
-                          value={formData.title}
-                          onChange={(e) => setFormData({...formData, title: e.target.value})}
-                          className="bg-black/40 border-white/10 h-12"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-gray-500">คำโปรย (Subtitle)</Label>
-                        <Input 
-                          placeholder="คำอธิบายสั้นๆ" 
-                          value={formData.subtitle}
-                          onChange={(e) => setFormData({...formData, subtitle: e.target.value})}
-                          className="bg-black/40 border-white/10 h-12"
-                        />
-                      </div>
-                   </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                       <div className="space-y-2">
+                         <Label className="text-xs font-black uppercase text-gray-500">ชื่อเรื่อง</Label>
+                         <Input 
+                           placeholder="ชื่อหนังหรือซีรีส์" 
+                           required
+                           value={formData.title}
+                           onChange={(e) => setFormData({...formData, title: e.target.value})}
+                           className="bg-black/40 border-white/10 h-12"
+                         />
+                       </div>
+                       <div className="space-y-2">
+                         <Label className="text-xs font-black uppercase text-gray-500">ปีที่ฉาย</Label>
+                         <Input value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="bg-black/40 border-white/10 h-12" />
+                       </div>
+                    </div>
 
                    <div className="space-y-2">
                       <Label className="text-xs font-black uppercase text-gray-500">เรื่องย่อ</Label>
@@ -285,12 +329,17 @@ export default function AddMoviePage() {
 
                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                       <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-gray-500">ปีที่ฉาย</Label>
-                        <Input value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className="bg-black/40 border-white/10" />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-xs font-black uppercase text-gray-500">หมวดหมู่ (Genre)</Label>
-                        <Input value={formData.genre} onChange={(e) => setFormData({...formData, genre: e.target.value})} className="bg-black/40 border-white/10" />
+                        <Label className="text-xs font-black uppercase text-gray-500">หมวดหมู่ (Category)</Label>
+                        <Select value={formData.genre} onValueChange={(val) => setFormData({...formData, genre: val})}>
+                           <SelectTrigger className="bg-black/40 border-white/10 h-10">
+                              <SelectValue placeholder="เลือกหมวดหมู่" />
+                           </SelectTrigger>
+                           <SelectContent className="bg-zinc-900 border-white/10 text-white">
+                              {categories.map((g) => (
+                                 <SelectItem key={g.id} value={g.name}>{g.name}</SelectItem>
+                              ))}
+                           </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs font-black uppercase text-yellow-400">ราคาเหรียญ (0 = ดูฟรี)</Label>
@@ -306,6 +355,32 @@ export default function AddMoviePage() {
                              className="bg-yellow-400/5 border-yellow-400/20 pl-10 text-yellow-400 font-black h-10" 
                            />
                         </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs font-black uppercase text-blue-400">วันที่เปิดให้ดูฟรี (Wait-to-unlock)</Label>
+                        <Popover>
+                           <PopoverTrigger asChild>
+                              <Button
+                                 variant={"outline"}
+                                 className={cn(
+                                    "w-full justify-start text-left font-normal bg-black/40 border-white/10 h-10",
+                                    !formData.free_at && "text-muted-foreground"
+                                 )}
+                              >
+                                 <Calendar className="mr-2 h-4 w-4" />
+                                 {formData.free_at ? format(formData.free_at, "PPP") : <span>เลือกวันที่</span>}
+                              </Button>
+                           </PopoverTrigger>
+                           <PopoverContent className="w-auto p-0 bg-zinc-900 border-white/10" align="start">
+                              <CalendarUI
+                                 mode="single"
+                                 selected={formData.free_at || undefined}
+                                 onSelect={(date) => setFormData({...formData, free_at: date || null})}
+                                 initialFocus
+                                 className="bg-zinc-900 text-white"
+                              />
+                           </PopoverContent>
+                        </Popover>
                       </div>
                    </div>
                 </CardContent>
@@ -388,30 +463,43 @@ export default function AddMoviePage() {
                         </div>
                      </div>
 
-                     {/* Video Upload */}
-                     {type === "movie" && (
+                     {/* Video Upload or Trailer URL */}
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-4">
                            <Label className="flex items-center gap-2 text-white font-black italic uppercase tracking-widest text-sm">
-                              <FileVideo className="h-4 w-4" /> 3. ไฟล์วิดีโอหลัก (Main Video)
+                              <Video className="h-4 w-4" /> 3. ลิงก์ตัวอย่าง (Trailer URL)
                            </Label>
-                           <div className="relative group h-40 border-2 border-dashed border-white/10 rounded-2xl bg-white/5 hover:border-white transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden">
-                              {videoFile ? (
-                                 <div className="flex flex-col items-center">
-                                    <Video className="h-10 w-10 text-green-500 mb-2" />
-                                    <span className="text-xs font-black uppercase">{videoFile.name}</span>
-                                    <span className="text-[10px] text-gray-500 mt-1">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB</span>
-                                    <button onClick={() => setVideoFile(null)} className="mt-4 text-[10px] font-black text-red-500 uppercase">ลบไฟล์เพื่อเลือกใหม่</button>
-                                 </div>
-                              ) : (
-                                 <>
-                                    <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
-                                    <Upload className="h-10 w-10 text-gray-600 group-hover:text-white mb-2 transition-colors" />
-                                    <p className="text-[10px] font-black uppercase text-gray-500">คลิกเพื่ออัปโหลดไฟล์วิดีโอ (.mp4, .mkv)</p>
-                                 </>
-                              )}
-                           </div>
+                           <Input 
+                              placeholder="https://youtube.com/..." 
+                              value={formData.trailer_url}
+                              onChange={(e) => setFormData({...formData, trailer_url: e.target.value})}
+                              className="bg-black/40 border-white/10 h-12"
+                           />
                         </div>
-                     )}
+                        {type === "movie" && (
+                           <div className="space-y-4">
+                              <Label className="flex items-center gap-2 text-white font-black italic uppercase tracking-widest text-sm">
+                                 <FileVideo className="h-4 w-4" /> 4. ไฟล์วิดีโอหลัก (Main Video)
+                              </Label>
+                              <div className="relative group h-40 border-2 border-dashed border-white/10 rounded-2xl bg-white/5 hover:border-white transition-all flex flex-col items-center justify-center cursor-pointer overflow-hidden">
+                                 {videoFile ? (
+                                    <div className="flex flex-col items-center">
+                                       <Video className="h-10 w-10 text-green-500 mb-2" />
+                                       <span className="text-xs font-black uppercase">{videoFile.name}</span>
+                                       <span className="text-[10px] text-gray-500 mt-1">{(videoFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                       <button onClick={() => setVideoFile(null)} className="mt-4 text-[10px] font-black text-red-500 uppercase">ลบไฟล์เพื่อเลือกใหม่</button>
+                                    </div>
+                                 ) : (
+                                    <>
+                                       <input type="file" accept="video/*" onChange={(e) => setVideoFile(e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                                       <Upload className="h-10 w-10 text-gray-600 group-hover:text-white mb-2 transition-colors" />
+                                       <p className="text-[10px] font-black uppercase text-gray-500">คลิกเพื่ออัปโหลดไฟล์วิดีโอ (.mp4, .mkv)</p>
+                                    </>
+                                 )}
+                              </div>
+                           </div>
+                        )}
+                     </div>
 
                   </CardContent>
                </Card>
@@ -433,45 +521,99 @@ export default function AddMoviePage() {
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                  <div className="space-y-2">
                                     <Label className="text-[10px] font-black uppercase text-gray-500">ชื่อตอน</Label>
-                                    <Input value={ep.title} onChange={(e) => handleEpisodeChange(index, 'title', e.target.value)} className="bg-black/40 border-white/10" />
+                                    <Input value={ep.title || ""} onChange={(e) => handleEpisodeChange(index, 'title', e.target.value)} className="bg-black/40 border-white/10" />
                                   </div>
                                   <div className="space-y-2">
                                      <Label className="text-[10px] font-black uppercase text-gray-500">ระยะเวลา (เช่น 45m)</Label>
-                                     <Input value={ep.duration} onChange={(e) => handleEpisodeChange(index, 'duration', e.target.value)} placeholder="45m" className="bg-black/40 border-white/10" />
+                                     <Input value={ep.duration || ""} onChange={(e) => handleEpisodeChange(index, 'duration', e.target.value)} placeholder="45m" className="bg-black/40 border-white/10" />
                                  </div>
                                  <div className="space-y-2">
                                     <Label className="text-[10px] font-black uppercase text-yellow-400">ราคาเหรียญของตอนนี้</Label>
                                     <Input type="number" value={ep.price_coins} onChange={(e) => handleEpisodeChange(index, 'price_coins', parseInt(e.target.value) || 0)} className="bg-yellow-400/5 border-yellow-400/20 text-yellow-400 font-black" />
                                  </div>
-                              </div>
-                              <div className="space-y-2">
-                                 <Label className="text-[10px] font-black uppercase text-gray-500">อัปโหลดไฟล์วิดีโอของตอนที่ {index + 1}</Label>
-                                 <div className="relative h-24 border-2 border-dashed border-white/10 rounded-xl bg-white/5 flex flex-col items-center justify-center hover:border-blue-400/50 transition-all cursor-pointer overflow-hidden">
-                                    {ep.file ? (
-                                       <div className="flex items-center gap-3">
-                                          <CheckCircle2 className="h-5 w-5 text-green-500" />
-                                          <span className="text-xs font-black truncate max-w-[200px]">{ep.file.name}</span>
-                                          <button onClick={() => handleEpisodeChange(index, 'file', null)} className="text-[10px] text-red-500 font-black uppercase">ลบ</button>
-                                       </div>
-                                    ) : (
-                                       <>
-                                          <input 
-                                            type="file" 
-                                            accept="video/*" 
-                                            onChange={async (e) => {
-                                               const file = e.target.files?.[0];
-                                               if (file) {
-                                                 handleEpisodeChange(index, 'file', file);
-                                                 const duration = await getVideoDuration(file);
-                                                 handleEpisodeChange(index, 'duration', duration);
-                                               }
-                                            }} 
-                                            className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                                 <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-blue-400">วันที่เปิดให้ดูฟรี</Label>
+                                    <Popover>
+                                       <PopoverTrigger asChild>
+                                          <Button
+                                             variant={"outline"}
+                                             className={cn(
+                                                "w-full justify-start text-left font-normal bg-black/40 border-white/10 h-10",
+                                                !ep.free_at && "text-muted-foreground"
+                                             )}
+                                          >
+                                             <Calendar className="mr-2 h-4 w-4" />
+                                             {ep.free_at ? format(ep.free_at, "PPP") : <span>เลือกวันที่</span>}
+                                          </Button>
+                                       </PopoverTrigger>
+                                       <PopoverContent className="w-auto p-0 bg-zinc-900 border-white/10" align="start">
+                                          <CalendarUI
+                                             mode="single"
+                                             selected={ep.free_at || undefined}
+                                             onSelect={(date) => handleEpisodeChange(index, 'free_at', date || null)}
+                                             initialFocus
+                                             className="bg-zinc-900 text-white"
                                           />
-                                          <Upload className="h-6 w-6 text-gray-600 mb-1" />
-                                          <p className="text-[10px] font-black uppercase text-gray-500">อัปโหลดวิดีโอ</p>
-                                       </>
-                                    )}
+                                       </PopoverContent>
+                                    </Popover>
+                                 </div>
+                              </div>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                 {/* Episode Poster Upload */}
+                                 <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-gray-500">รูปปกตอน (Optional)</Label>
+                                    <div className="relative h-24 border-2 border-dashed border-white/10 rounded-xl bg-white/5 flex flex-col items-center justify-center hover:border-yellow-400/50 transition-all cursor-pointer overflow-hidden">
+                                       {ep.posterPreview ? (
+                                          <>
+                                             <img src={ep.posterPreview} className="absolute inset-0 w-full h-full object-cover opacity-40" />
+                                             <div className="relative z-10 flex flex-col items-center">
+                                                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                                <span className="text-[8px] font-black uppercase bg-black/60 px-2 py-0.5 rounded-full mt-1">Uploaded</span>
+                                             </div>
+                                             <button onClick={() => handleEpisodeChange(index, 'posterFile', null)} className="absolute top-1 right-1 z-20 h-5 w-5 bg-red-500 rounded-full flex items-center justify-center">
+                                                <X className="h-3 w-3" />
+                                             </button>
+                                          </>
+                                       ) : (
+                                          <>
+                                             <input type="file" accept="image/*" onChange={(e) => handleEpisodeChange(index, 'posterFile', e.target.files?.[0] || null)} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
+                                             <ImageIcon className="h-6 w-6 text-gray-600 mb-1" />
+                                             <p className="text-[10px] font-black uppercase text-gray-500">อัปโหลดรูปปกตอน</p>
+                                          </>
+                                       )}
+                                    </div>
+                                 </div>
+
+                                 <div className="space-y-2">
+                                    <Label className="text-[10px] font-black uppercase text-gray-500">อัปโหลดไฟล์วิดีโอของตอนที่ {index + 1}</Label>
+                                    <div className="relative h-24 border-2 border-dashed border-white/10 rounded-xl bg-white/5 flex flex-col items-center justify-center hover:border-blue-400/50 transition-all cursor-pointer overflow-hidden">
+                                       {ep.file ? (
+                                          <div className="flex items-center gap-3">
+                                             <CheckCircle2 className="h-5 w-5 text-green-500" />
+                                             <span className="text-xs font-black truncate max-w-[150px]">{ep.file.name}</span>
+                                             <button onClick={() => handleEpisodeChange(index, 'file', null)} className="text-[10px] text-red-500 font-black uppercase">ลบ</button>
+                                          </div>
+                                       ) : (
+                                          <>
+                                             <input 
+                                               type="file" 
+                                               accept="video/*" 
+                                               onChange={async (e) => {
+                                                  const file = e.target.files?.[0];
+                                                  if (file) {
+                                                    handleEpisodeChange(index, 'file', file);
+                                                    const duration = await getVideoDuration(file);
+                                                    handleEpisodeChange(index, 'duration', duration);
+                                                  }
+                                               }} 
+                                               className="absolute inset-0 opacity-0 cursor-pointer z-10" 
+                                             />
+                                             <Upload className="h-6 w-6 text-gray-600 mb-1" />
+                                             <p className="text-[10px] font-black uppercase text-gray-500">อัปโหลดวิดีโอ</p>
+                                          </>
+                                       )}
+                                    </div>
                                  </div>
                               </div>
                            </CardContent>

@@ -12,7 +12,9 @@ import {
   FastForward,
   Settings,
   Subtitles,
-  Check
+  Check,
+  Headphones,
+  Waves
 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
@@ -33,6 +35,7 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
   const containerRef = useRef<HTMLDivElement>(null);
 
   const [currentSrc, setCurrentSrc] = useState(src);
+  const [showSettings, setShowSettings] = useState(false);
 
   // Sync currentSrc with src prop when it changes
   useEffect(() => {
@@ -50,7 +53,11 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
   const [seeking, setSeeking] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
+  const [isCinemaMode, setIsCinemaMode] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceNodeRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const bassFilterRef = useRef<BiquadFilterNode | null>(null);
+  const compressorRef = useRef<DynamicsCompressorNode | null>(null);
   const [quality, setQuality] = useState("1080p");
   const [isReady, setIsReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true); // เพิ่มสถานะการโหลด
@@ -102,17 +109,45 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
     videoRef.current.volume = volume;
   }, [muted, volume]);
 
-  // Auto-hide controls
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (showControls && playing) {
-      timer = setTimeout(() => setShowControls(false), 3000);
+  const togglePlay = () => {
+    // Resume Audio Context if suspended
+    if (audioContextRef.current && audioContextRef.current.state === 'suspended') {
+      audioContextRef.current.resume();
     }
-    return () => clearTimeout(timer);
-  }, [showControls, playing]);
-
-  const togglePlay = () => setPlaying(!playing);
+    setPlaying(!playing);
+  };
   const toggleMute = () => setMuted(!muted);
+  // 🎬 Toggle Cinema Mode
+  const toggleCinemaMode = () => {
+    if (!audioContextRef.current) return;
+    
+    setIsCinemaMode(!isCinemaMode);
+  };
+
+  // Handle Audio Graph Changes
+  useEffect(() => {
+    if (!sourceNodeRef.current || !audioContextRef.current) return;
+
+    const source = sourceNodeRef.current;
+    const ctx = audioContextRef.current;
+    const bass = bassFilterRef.current!;
+    const compressor = compressorRef.current!;
+
+    // ตัดการเชื่อมต่อทั้งหมดก่อน
+    source.disconnect();
+    bass.disconnect();
+    compressor.disconnect();
+
+    if (isCinemaMode) {
+      // ต่อสายแบบ Cinema: Source -> Bass -> Compressor -> Speakers
+      source.connect(bass);
+      bass.connect(compressor);
+      compressor.connect(ctx.destination);
+    } else {
+      // ต่อสายแบบปกติ: Source -> Speakers
+      source.connect(ctx.destination);
+    }
+  }, [isCinemaMode]);
 
   const handleTimeUpdate = () => {
     if (!seeking && videoRef.current) {
@@ -130,6 +165,39 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
       // ข้ามไปยังเวลาที่ดูค้างไว้
       if (startTime > 0) {
         videoRef.current.currentTime = startTime;
+      }
+
+      // 🎸 Setup Native Web Audio API (No Microphone needed)
+      try {
+        if (!audioContextRef.current && videoRef.current) {
+          const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+          const ctx = new AudioContextClass();
+          const source = ctx.createMediaElementSource(videoRef.current);
+          
+          // 1. Bass Boost Node
+          const bass = ctx.createBiquadFilter();
+          bass.type = 'lowshelf';
+          bass.frequency.value = 200;
+          bass.gain.value = 8; // เพิ่มเบส 8dB
+
+          // 2. Compressor Node
+          const compressor = ctx.createDynamicsCompressor();
+          compressor.threshold.setValueAtTime(-24, ctx.currentTime);
+          compressor.knee.setValueAtTime(40, ctx.currentTime);
+          compressor.ratio.setValueAtTime(12, ctx.currentTime);
+          compressor.attack.setValueAtTime(0, ctx.currentTime);
+          compressor.release.setValueAtTime(0.25, ctx.currentTime);
+
+          audioContextRef.current = ctx;
+          sourceNodeRef.current = source;
+          bassFilterRef.current = bass;
+          compressorRef.current = compressor;
+
+          // เชื่อมต่อเริ่มต้น (แบบปกติ)
+          source.connect(ctx.destination);
+        }
+      } catch (err) {
+        console.error("Audio Engine Init Error:", err);
       }
       
       const width = videoRef.current.videoWidth;
@@ -165,7 +233,6 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
     setCurrentSrc(newSrc);
     setShowSettings(false);
     
-    // โหลดไฟล์ใหม่และขยับเวลาไปที่เดิม
     setTimeout(() => {
       if (videoRef.current) {
         videoRef.current.currentTime = currentTime;
@@ -198,7 +265,6 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
         } else if ((containerRef.current as any).webkitRequestFullscreen) {
           await (containerRef.current as any).webkitRequestFullscreen();
         } else if (videoRef.current && (videoRef.current as any).webkitEnterFullscreen) {
-          // iOS Safari fallback
           (videoRef.current as any).webkitEnterFullscreen();
         }
         setIsFullscreen(true);
@@ -251,21 +317,19 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
         onPlaying={() => setIsLoading(false)}
         onEnded={onEnded}
         playsInline
+        crossOrigin="anonymous"
       />
 
-      {/* Loading Indicator */}
       {isLoading && (
         <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/20 backdrop-blur-[2px]">
           <div className="h-12 w-12 md:h-16 md:w-16 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
         </div>
       )}
 
-      {/* Overlay - Click to toggle play */}
       <div 
         className="absolute inset-0 z-10 flex items-center justify-center cursor-pointer"
         onClick={togglePlay}
       >
-        {/* Big Play Button - Shows only when paused by user */}
         {!playing && isReady && (
           <div className="group/playbtn bg-yellow-400/90 hover:bg-yellow-400 p-6 md:p-8 rounded-full shadow-[0_0_50px_rgba(250,204,21,0.3)] transform transition-all duration-300 hover:scale-110 active:scale-90">
             <Play className="h-10 w-10 md:h-16 md:w-16 fill-black text-black ml-1" />
@@ -273,16 +337,10 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
         )}
       </div>
 
-      {/* Controls Container */}
       <div className={`absolute inset-0 z-20 flex flex-col justify-between transition-opacity duration-500 ${showControls ? "opacity-100" : "opacity-0 pointer-events-none"}`}>
-        
-        {/* Top Gradient */}
         <div className="h-32 bg-gradient-to-b from-black/80 to-transparent p-8" />
 
-        {/* Bottom Controls */}
         <div className="bg-gradient-to-t from-black/90 via-black/40 to-transparent p-6 md:p-12 space-y-4">
-          
-          {/* Progress Bar */}
           <div className="group/progress relative mb-2">
             <div className="flex justify-between text-xs md:text-sm text-gray-300 mb-2 font-medium">
               <span>{formatTime(played * duration)}</span>
@@ -298,7 +356,6 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
             />
           </div>
 
-          {/* Buttons Row */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 md:gap-10">
               <button onClick={(e) => { e.stopPropagation(); skip(-10); }} className="text-white hover:text-yellow-400 transition-colors">
@@ -338,6 +395,16 @@ export default function VideoPlayer({ src, qualities = {}, title, poster, onEnde
             </div>
 
             <div className="flex items-center gap-4 md:gap-8 text-white">
+              {/* Cinema Audio Toggle */}
+              <button 
+                onClick={toggleCinemaMode}
+                className={`p-2 rounded-full transition-all flex items-center gap-2 group ${isCinemaMode ? 'bg-yellow-400 text-black' : 'hover:bg-white/10 text-white'}`}
+                title="โหมดเสียงโรงภาพยนตร์"
+              >
+                <Headphones className={`h-5 w-5 ${isCinemaMode ? 'animate-pulse' : ''}`} />
+                {isCinemaMode && <span className="text-[10px] font-black uppercase pr-1">Cinema Mode On</span>}
+              </button>
+
               <button className="hidden sm:block hover:text-yellow-400 transition-colors"><Subtitles className="h-6 w-6 md:h-8 md:w-8" /></button>
               <div className="relative">
                 <button onClick={(e) => { e.stopPropagation(); setShowSettings(!showSettings); }} className={`hover:text-yellow-400 transition-colors ${showSettings ? "text-yellow-400 rotate-90" : ""} transition-transform duration-300`}>

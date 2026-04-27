@@ -14,29 +14,31 @@ interface HomeContentProps {
 
 export default function HomeContent({ initialMovies }: HomeContentProps) {
   const [history, setHistory] = useState<any[]>([]);
+  const [purchases, setPurchases] = useState<any[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    const fetchHistory = async () => {
+    const fetchData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         setLoadingHistory(false);
         return;
       }
 
-      const { data } = await supabase
+      // Fetch History
+      const { data: historyData } = await supabase
         .from('watch_history')
         .select('*, movies(*), episodes(*)')
         .eq('user_id', user.id)
         .order('updated_at', { ascending: false })
         .limit(10);
       
-      if (data) {
+      if (historyData) {
         const uniqueHistory: any[] = [];
         const seenMovies = new Set();
         
-        for (const item of data) {
+        for (const item of historyData) {
           if (!seenMovies.has(item.movie_id)) {
             seenMovies.add(item.movie_id);
             if ((item.last_position / item.duration) < 0.95) {
@@ -46,10 +48,18 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
         }
         setHistory(uniqueHistory);
       }
+
+      // Fetch Purchases
+      const { data: purchaseData } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('user_id', user.id);
+      setPurchases(purchaseData || []);
+
       setLoadingHistory(false);
     };
 
-    fetchHistory();
+    fetchData();
   }, [supabase]);
 
   return (
@@ -125,16 +135,22 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
         </div>
 
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {initialMovies.map((movie) => (
-            <MovieCard
-              key={movie.id}
-              id={movie.id}
-              title={movie.title}
-              image={movie.image_url}
-              rating={movie.rating || "8.5"}
-              year={movie.year || "2024"}
-            />
-          ))}
+          {initialMovies.map((movie) => {
+            const isPurchased = purchases.some(p => p.movie_id === movie.id);
+            return (
+              <MovieCard
+                key={movie.id}
+                id={movie.id}
+                title={movie.title}
+                image={movie.image_url}
+                year={movie.year || "2024"}
+                price_coins={movie.price_coins}
+                free_at={movie.free_at}
+                is_purchased={isPurchased}
+                is_premium={movie.is_premium}
+              />
+            );
+          })}
         </div>
       </section>
     </>

@@ -22,7 +22,8 @@ import {
   Eye,
   Loader2,
   Database,
-  Activity
+  Activity,
+  LayoutGrid
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -134,6 +135,7 @@ export default function AdminDashboard() {
         <div className="flex flex-wrap items-center gap-3">
            <NavItem icon={Film} label="Content" href="/admin/movies" />
            <NavItem icon={Users} label="Users" href="/admin/users" />
+           <NavItem icon={LayoutGrid} label="Categories" href="/admin/categories" />
            <NavItem icon={Package} label="Packages" href="/admin/packages" />
            <NavItem icon={CreditCard} label="History" href="/admin/transactions" />
            <button 
