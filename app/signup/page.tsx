@@ -69,6 +69,9 @@ export default function SignupPage() {
           <Link href="/login" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-4">
             <ArrowLeft className="h-4 w-4" /> กลับไปหน้าเข้าสู่ระบบ
           </Link>
+          <div className="flex justify-center mb-4">
+            <img src="/logo.svg" alt="Logo" className="h-16 w-auto" />
+          </div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase">
             CREATE <span className="text-yellow-400">ACCOUNT</span>
           </h1>

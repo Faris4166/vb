@@ -16,6 +16,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "KMniyai",
   description: "KMniyai",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

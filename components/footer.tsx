@@ -23,7 +23,10 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16 items-start">
           {/* Brand Info */}
           <div className="space-y-6">
-            <h2 className="text-4xl font-black italic uppercase tracking-tighter text-yellow-400">KMniyai</h2>
+            <div className="flex items-center gap-3">
+              <img src="/logo.svg" alt="Logo" className="h-12 w-auto" />
+              <h2 className="text-4xl font-black italic uppercase tracking-tighter text-yellow-400">KMniyai</h2>
+            </div>
           </div>
 
           {/* Quick Links */}
