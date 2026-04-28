@@ -13,7 +13,8 @@ import {
   Eye,
   ArrowLeft,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Heart
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -117,6 +118,7 @@ export default function MoviesManagement() {
                 <TableHead>เนื้อหา</TableHead>
                 <TableHead>ประเภท</TableHead>
                 <TableHead>หมวดหมู่</TableHead>
+                <TableHead>สถิติ</TableHead>
                 <TableHead>วันที่เพิ่ม</TableHead>
                 <TableHead>สถานะ</TableHead>
                 <TableHead className="text-right">จัดการ</TableHead>
@@ -129,6 +131,7 @@ export default function MoviesManagement() {
                     <TableCell><div className="h-10 w-32 bg-white/5 rounded-lg" /></TableCell>
                     <TableCell><div className="h-6 w-16 bg-white/5 rounded-full" /></TableCell>
                     <TableCell><div className="h-6 w-20 bg-white/5 rounded-full" /></TableCell>
+                    <TableCell><div className="h-6 w-16 bg-white/5 rounded-full" /></TableCell>
                     <TableCell><div className="h-6 w-24 bg-white/5 rounded-lg" /></TableCell>
                     <TableCell><div className="h-6 w-16 bg-white/5 rounded-full" /></TableCell>
                     <TableCell><div className="h-8 w-8 bg-white/5 rounded-lg ml-auto" /></TableCell>
@@ -158,6 +161,12 @@ export default function MoviesManagement() {
                       </Badge>
                     </TableCell>
                     <TableCell className="text-[10px] text-gray-400 font-bold uppercase">{movie.genre || 'General'}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2 text-xs font-bold text-gray-400">
+                         <span className="flex items-center gap-1 text-blue-400"><Eye className="h-3 w-3" /> {movie.views || 0}</span>
+                         <span className="flex items-center gap-1 text-red-500"><Heart className="h-3 w-3" /> {movie.likes || 0}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-xs text-gray-500">
                       {new Date(movie.created_at).toLocaleDateString('th-TH')}
                     </TableCell>

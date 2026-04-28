@@ -20,6 +20,7 @@ import {
   BarChart3,
   Coins,
   Eye,
+  Heart,
   Loader2,
   Database,
   Activity,
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [topMovies, setTopMovies] = useState<any[]>([]);
   const [topSellers, setTopSellers] = useState<any[]>([]);
+  const [topLikes, setTopLikes] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalUsers: 0, totalCoins: 0, totalMovies: 0 });
   const supabase = createClient();
   const router = useRouter();
@@ -64,6 +66,14 @@ export default function AdminDashboard() {
         .order('views', { ascending: false })
         .limit(10);
       setTopMovies(viewData || []);
+
+      // Top Liked
+      const { data: likeData } = await supabase
+        .from('movies')
+        .select('*')
+        .order('likes', { ascending: false })
+        .limit(10);
+      setTopLikes(likeData || []);
 
       // Top Sellers
       const { data: salesData } = await supabase
@@ -158,12 +168,15 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <Tabs defaultValue="views" className="w-full">
-              <TabsList className="bg-white/5 w-full justify-start p-1 mb-6 h-14 rounded-2xl">
-                <TabsTrigger value="views" className="flex-1 rounded-xl font-black uppercase italic text-sm data-[state=active]:bg-yellow-400 data-[state=active]:text-black">
-                  <Eye className="h-5 w-5 mr-2" /> ยอดคนดูสูงสุด (Top Views)
+              <TabsList className="bg-white/5 w-full justify-start p-1 mb-6 h-14 rounded-2xl flex-wrap">
+                <TabsTrigger value="views" className="flex-1 rounded-xl font-black uppercase italic text-sm data-[state=active]:bg-yellow-400 data-[state=active]:text-black min-w-[120px]">
+                  <Eye className="h-5 w-5 mr-2" /> ยอดคนดู
                 </TabsTrigger>
-                <TabsTrigger value="sales" className="flex-1 rounded-xl font-black uppercase italic text-sm data-[state=active]:bg-yellow-400 data-[state=active]:text-black">
-                  <Coins className="h-5 w-5 mr-2" /> ยอดขายสูงสุด (Top Revenue)
+                <TabsTrigger value="likes" className="flex-1 rounded-xl font-black uppercase italic text-sm data-[state=active]:bg-yellow-400 data-[state=active]:text-black min-w-[120px]">
+                  <Heart className="h-5 w-5 mr-2" /> ยอดถูกใจ
+                </TabsTrigger>
+                <TabsTrigger value="sales" className="flex-1 rounded-xl font-black uppercase italic text-sm data-[state=active]:bg-yellow-400 data-[state=active]:text-black min-w-[120px]">
+                  <Coins className="h-5 w-5 mr-2" /> ยอดขาย
                 </TabsTrigger>
               </TabsList>
 
@@ -184,6 +197,28 @@ export default function AdminDashboard() {
                        <Eye className="h-5 w-5" />
                        <span className="font-black italic text-xl">{movie.views?.toLocaleString() || 0}</span>
                        <span className="text-[10px] font-black uppercase opacity-60">Views</span>
+                    </div>
+                  </div>
+                ))}
+              </TabsContent>
+
+              <TabsContent value="likes" className="space-y-3 mt-0">
+                {loading ? <LoadingSkeleton /> : topLikes.map((movie, idx) => (
+                  <div key={movie.id} className="flex items-center justify-between p-5 bg-white/[0.02] hover:bg-white/5 rounded-3xl border border-white/5 transition-all group">
+                    <div className="flex items-center gap-6">
+                       <div className="w-10 text-center font-black italic text-gray-700 group-hover:text-yellow-400/20 text-3xl">{idx + 1}</div>
+                       <div className="h-16 w-12 rounded-xl overflow-hidden shadow-2xl">
+                          <img src={movie.image_url} className="w-full h-full object-cover" />
+                       </div>
+                       <div>
+                          <p className="font-black text-lg uppercase italic text-white/90">{movie.title}</p>
+                          <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{movie.genre} • {movie.year}</p>
+                       </div>
+                    </div>
+                    <div className="flex items-center gap-3 text-red-500 bg-red-500/5 px-6 py-3 rounded-2xl border border-red-500/10">
+                       <Heart className="h-5 w-5" />
+                       <span className="font-black italic text-xl">{movie.likes?.toLocaleString() || 0}</span>
+                       <span className="text-[10px] font-black uppercase opacity-60">Likes</span>
                     </div>
                   </div>
                 ))}

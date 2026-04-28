@@ -50,7 +50,7 @@ export default function Footer() {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase text-gray-500 italic mb-1">LINE Official</p>
-                  <Link href="https://lin.ee/9UrSdEo" className="text-2xl font-black uppercase italic text-white hover:text-green-500 transition-colors tracking-tighter">@wonkstream</Link>
+                  <Link href="https://lin.ee/9UrSdEo" className="text-2xl font-black uppercase italic text-white hover:text-green-500 transition-colors tracking-tighter">@709ewexy</Link>
                 </div>
               </li>
             </ul>

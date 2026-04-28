@@ -18,7 +18,8 @@ import {
   ChevronRight,
   Coins,
   CheckCircle2,
-  X
+  X,
+  Heart
 } from "lucide-react";
 import { format, isAfter } from "date-fns";
 import { th } from "date-fns/locale";
@@ -46,6 +47,8 @@ export default function MovieDetailsPage() {
   const [purchases, setPurchases] = useState<any[]>([]);
   const [similarMovies, setSimilarMovies] = useState<any[]>([]);
   const [detectedDuration, setDetectedDuration] = useState<string | null>(null);
+  const [likes, setLikes] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
   
   const supabase = createClient();
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -68,6 +71,7 @@ export default function MovieDetailsPage() {
       
       if (error) throw error;
       setMovie(movieData);
+      setLikes(movieData.likes || 0);
 
       // 2. Get Episodes if series
       let epData = [];
@@ -96,6 +100,14 @@ export default function MovieDetailsPage() {
           .eq('movie_id', id)
           .single();
         setIsInWatchlist(!!watchlistData);
+
+        const { data: likeData } = await supabase
+          .from('movie_likes')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('movie_id', id)
+          .single();
+        setIsLiked(!!likeData);
       }
 
       // Auto-detect duration if missing
@@ -147,6 +159,25 @@ export default function MovieDetailsPage() {
     } else {
       await supabase.from('watchlist').insert({ user_id: user.id, movie_id: id });
       setIsInWatchlist(true);
+    }
+  };
+
+  const toggleLike = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return router.push("/login");
+
+    if (isLiked) {
+      await supabase.from('movie_likes').delete().eq('user_id', user.id).eq('movie_id', id);
+      setLikes(prev => Math.max(0, prev - 1));
+      setIsLiked(false);
+      // Update movie table silently
+      supabase.from('movies').update({ likes: Math.max(0, likes - 1) }).eq('id', id).then();
+    } else {
+      await supabase.from('movie_likes').insert({ user_id: user.id, movie_id: id });
+      setLikes(prev => prev + 1);
+      setIsLiked(true);
+      // Update movie table silently
+      supabase.from('movies').update({ likes: likes + 1 }).eq('id', id).then();
     }
   };
 
@@ -259,7 +290,15 @@ export default function MovieDetailsPage() {
               onClick={toggleWatchlist}
               className={`flex h-12 w-12 md:h-14 md:w-14 items-center justify-center rounded-xl border-2 transition-all active:scale-90 ${isInWatchlist ? 'bg-yellow-400 border-yellow-400 text-black' : 'bg-black/40 border-white/20 text-white hover:border-white'}`}
             >
-              {isInWatchlist ? <Check className="h-6 w-6 stroke-[3px]" /> : <Plus className="h-6 w-6" />}
+              {isInWatchlist ? <Check className="h-6 w-6 stroke-[3px]" /> : <Bookmark className="h-6 w-6" />}
+            </button>
+
+            <button 
+              onClick={toggleLike}
+              className={`flex items-center gap-2 h-12 px-4 md:h-14 md:px-6 rounded-xl border-2 transition-all active:scale-90 ${isLiked ? 'bg-red-500 border-red-500 text-white' : 'bg-black/40 border-white/20 text-white hover:border-white hover:bg-white/10'}`}
+            >
+              <Heart className={`h-6 w-6 ${isLiked ? 'fill-white' : ''}`} />
+              <span className="font-bold text-sm md:text-base">{likes > 0 ? likes.toLocaleString() : 'ถูกใจ'}</span>
             </button>
 
             <button 

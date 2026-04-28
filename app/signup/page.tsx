@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Mail, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -70,7 +71,7 @@ export default function SignupPage() {
             <ArrowLeft className="h-4 w-4" /> กลับไปหน้าเข้าสู่ระบบ
           </Link>
           <div className="flex justify-center mb-4">
-            <img src="/logo.svg" alt="Logo" className="h-16 w-auto" />
+            <Image src="/logo.svg" alt="Logo" width={150} height={150} />
           </div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase">
             CREATE <span className="text-yellow-400">ACCOUNT</span>

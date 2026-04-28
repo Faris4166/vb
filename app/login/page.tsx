@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Mail, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -47,7 +48,7 @@ export default function LoginPage() {
             <ArrowLeft className="h-4 w-4" /> กลับหน้าหลัก
           </Link>
           <div className="flex justify-center mb-4">
-            <img src="/logo.svg" alt="Logo" className="h-16 w-auto" />
+            <Image src="/logo.svg" alt="Logo" width={150} height={150} />
           </div>
           <h1 className="text-4xl font-black italic tracking-tighter uppercase">
             SIGN <span className="text-yellow-400">IN</span>
