@@ -31,6 +31,8 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 
+import { useClerk } from "@clerk/nextjs";
+
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [topMovies, setTopMovies] = useState<any[]>([]);
@@ -39,6 +41,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({ totalUsers: 0, totalCoins: 0, totalMovies: 0 });
   const supabase = createClient();
   const router = useRouter();
+  const { signOut } = useClerk();
 
   useEffect(() => {
     fetchDashboardData();
@@ -104,8 +107,8 @@ export default function AdminDashboard() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
+    await signOut();
+    router.push("/");
   };
 
   const NavItem = ({ icon: Icon, label, href }: { icon: any, label: string, href: string }) => (

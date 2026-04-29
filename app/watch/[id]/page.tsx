@@ -49,10 +49,8 @@ function PlayerContent() {
   }, [id, epId]);
 
   useEffect(() => {
-    if (isUnlocked && movie && !viewCounted && !loading) {
-      handleIncrementView();
-    }
-  }, [isUnlocked, movie, viewCounted, loading]);
+    // View counting logic is now handled in handleProgress
+  }, []);
 
   const handleIncrementView = async () => {
     const sessionKey = `viewed_${id}`;
@@ -177,7 +175,12 @@ function PlayerContent() {
   };
 
   const handleProgress = async (currentTime: number, duration: number) => {
-    // Save every 10 seconds or when significant progress is made
+    // 1. Count View if > 30 seconds
+    if (!viewCounted && currentTime >= 30) {
+      handleIncrementView();
+    }
+
+    // 2. Save history every 10 seconds or when significant progress is made
     if (Math.abs(currentTime - lastSavedRef.current) > 10) {
       lastSavedRef.current = currentTime;
       const { data: { user } } = await supabase.auth.getUser();

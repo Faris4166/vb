@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import MovieCard from "@/components/movie-card";
 import { createClient } from "@/lib/supabase";
-import { Play, Clock } from "lucide-react";
+import { Play, Clock, Trophy } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import SkeletonCard from "@/components/skeleton-loaders";
@@ -125,8 +125,50 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
         </section>
       )}
 
-      {/* Trending Movies Section */}
+      {/* Top 5 Ranking Section */}
       <section className={`relative z-10 px-8 md:px-16 lg:px-24 ${history.length === 0 ? '-mt-20' : ''} mb-20`}>
+        <div className="mb-6 flex items-center gap-2">
+           <div className="h-8 w-1.5 bg-yellow-400 rounded-full" />
+           <h2 className="text-2xl font-bold text-white md:text-3xl uppercase italic tracking-tighter flex items-center gap-2">
+             <Trophy className="h-6 w-6 text-yellow-400" />
+             TOP 5 <span className="text-yellow-400">ฮิตที่สุด</span>
+           </h2>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {(() => {
+            const top5Movies = [...initialMovies]
+              .sort((a, b) => (b.views || 0) - (a.views || 0))
+              .slice(0, 5);
+
+            return top5Movies.map((movie, index) => {
+              const isPurchased = purchases.some(p => p.movie_id === movie.id);
+              return (
+                <div key={movie.id} className="relative flex-1 group">
+                  <div className="absolute -left-4 md:-left-6 top-1/2 -translate-y-1/2 z-20 text-[6rem] md:text-[8rem] font-black italic text-transparent stroke-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] pointer-events-none select-none transition-transform group-hover:scale-110 group-hover:text-yellow-400 group-hover:stroke-yellow-400 duration-500" style={{ WebkitTextStroke: '2px currentColor' }}>
+                    {index + 1}
+                  </div>
+                  <div className="pl-8 md:pl-12 h-full">
+                    <MovieCard
+                      id={movie.id}
+                      title={movie.title}
+                      image={movie.image_url}
+                      year={movie.year || "2024"}
+                      price_coins={movie.price_coins}
+                      free_at={movie.free_at}
+                      is_purchased={isPurchased}
+                      is_premium={movie.is_premium}
+                    />
+                  </div>
+                </div>
+              );
+            });
+          })()}
+        </div>
+      </section>
+
+      {/* Trending Movies Section */}
+      <section className="relative z-10 px-8 md:px-16 lg:px-24 mb-20">
         <div className="mb-6 flex items-center gap-2">
            <div className="h-8 w-1.5 bg-yellow-400 rounded-full" />
            <h2 className="text-2xl font-bold text-white md:text-3xl uppercase italic tracking-tighter">
