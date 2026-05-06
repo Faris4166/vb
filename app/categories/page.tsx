@@ -57,14 +57,14 @@ function CategoriesContent() {
           <span>สำรวจ</span>
           <ChevronRight className="h-4 w-4" />
           <span className="text-yellow-400">
-            {typeFilter === 'movie' ? 'หนังทั้งหมด' : typeFilter === 'series' ? 'ซีรีส์ทั้งหมด' : 'แยกหมวดหมู่'}
+            วิดีโอทั้งหมด
           </span>
         </div>
         <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase mb-2">
-          {typeFilter === 'movie' ? 'MOVIES' : typeFilter === 'series' ? 'SERIES' : 'BROWSE'} <span className="text-yellow-400">{selectedGenre === 'ทั้งหมด' ? 'COLLECTION' : 'GENRES'}</span>
+          VIDEOS <span className="text-yellow-400">{selectedGenre === 'ทั้งหมด' ? 'COLLECTION' : 'GENRES'}</span>
         </h1>
         <p className="text-gray-400 text-sm md:text-base max-w-xl">
-          ค้นหาภาพยนตร์และซีรีส์ที่คุณชื่นชอบตามหมวดหมู่ที่เราคัดสรรมาให้ เพื่อประสบการณ์การรับชมที่ดีที่สุดของคุณ
+          ค้นหาวิดีโอที่คุณชื่นชอบตามหมวดหมู่ที่เราคัดสรรมาให้ เพื่อประสบการณ์การรับชมที่ดีที่สุดของคุณ
         </p>
       </div>
 

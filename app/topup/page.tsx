@@ -65,7 +65,7 @@ export default function TopupPage() {
             เติมเหรียญ <span className="text-yellow-400">FLIX COINS</span>
           </h1>
           <p className="text-gray-500 max-w-xl mx-auto font-medium text-sm md:text-base">
-            ปลดล็อกเนื้อหาพรีเมียมและรับชมซีรีส์ตอนล่าสุดก่อนใคร <br/> เลือกแพ็กเกจที่คุ้มค่าที่สุดสำหรับคุณด้านล่างนี้
+            ปลดล็อกเนื้อหาพรีเมียมและรับชมวิดีโอตอนล่าสุดก่อนใคร <br/> เลือกแพ็กเกจที่คุ้มค่าที่สุดสำหรับคุณด้านล่างนี้
           </p>
         </div>
 

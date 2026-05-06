@@ -34,9 +34,10 @@ export default function Footer() {
             <h4 className="text-sm font-black uppercase italic tracking-widest text-white">เมนูแนะนำ</h4>
             <ul className="space-y-3">
               <li><Link href="/" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">หน้าแรก</Link></li>
-              <li><Link href="/categories" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">หมวดหมู่ทั้งหมด</Link></li>
+              <li><Link href="/categories" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">วิดีโอทั้งหมด</Link></li>
+              <li><Link href="/categories" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">หมวดหมู่</Link></li>
               <li><Link href="/premium" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">แพ็คเกจเหรียญ</Link></li>
-              <li><Link href="/watchlist" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">รายการที่บันทึกไว้</Link></li>
+              <li><Link href="/mylist" className="text-gray-500 hover:text-yellow-400 transition-colors text-sm font-bold uppercase italic">รายการของฉัน</Link></li>
             </ul>
           </div>
 
@@ -60,11 +61,10 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
           <p className="text-[10px] font-black uppercase text-gray-600 tracking-widest italic">
-            © 2024 KMniyai. ALL RIGHTS RESERVED.
+            © {new Date().getFullYear()} KMniyai. ALL RIGHTS RESERVED.
           </p>
           <div className="flex items-center gap-6">
-            <Link href="/terms" className="text-[10px] font-black uppercase text-gray-600 hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="/privacy" className="text-[10px] font-black uppercase text-gray-600 hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/legal-notice" className="text-[10px] font-black uppercase text-gray-600 hover:text-white transition-colors underline underline-offset-4 decoration-yellow-400/50">ประกาศทางกฎหมาย</Link>
           </div>
         </div>
       </div>

@@ -153,7 +153,7 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
                       id={movie.id}
                       title={movie.title}
                       image={movie.image_url}
-                      year={movie.year || "2024"}
+                      year={movie.year || new Date().getFullYear().toString()}
                       price_coins={movie.price_coins}
                       free_at={movie.free_at}
                       is_purchased={isPurchased}
@@ -172,7 +172,7 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
         <div className="mb-6 flex items-center gap-2">
            <div className="h-8 w-1.5 bg-yellow-400 rounded-full" />
            <h2 className="text-2xl font-bold text-white md:text-3xl uppercase italic tracking-tighter">
-             หนังที่กำลัง <span className="text-yellow-400">นิยม</span>
+             วิดีโอที่กำลัง <span className="text-yellow-400">นิยม</span>
            </h2>
         </div>
 
@@ -185,7 +185,7 @@ export default function HomeContent({ initialMovies }: HomeContentProps) {
                 id={movie.id}
                 title={movie.title}
                 image={movie.image_url}
-                year={movie.year || "2024"}
+                year={movie.year || new Date().getFullYear().toString()}
                 price_coins={movie.price_coins}
                 free_at={movie.free_at}
                 is_purchased={isPurchased}

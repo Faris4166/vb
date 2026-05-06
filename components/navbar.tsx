@@ -67,8 +67,7 @@ export default function Navbar() {
           <ul className="hidden lg:flex items-center gap-6 xl:gap-10">
             {[
               { label: "หน้าแรก", href: "/" },
-              { label: "หนัง", href: "/categories?type=movie" },
-              { label: "ซีรีส์", href: "/categories?type=series" },
+              { label: "วิดีโอทั้งหมด", href: "/categories" },
               { label: "หมวดหมู่", href: "/categories" },
               { label: "รายการของฉัน", href: "/mylist" }
             ].map((item) => (
@@ -86,7 +85,7 @@ export default function Navbar() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40 group-focus-within:text-yellow-400 transition-colors" />
             <input 
               type="text" 
-              placeholder="ค้นหาหนัง, ซีรีส์..." 
+              placeholder="ค้นหาวิดีโอที่ต้องการ..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white/5 border border-white/10 rounded-full py-2 pl-10 pr-4 text-xs md:text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:bg-white/10 transition-all"
@@ -127,23 +126,23 @@ export default function Navbar() {
                      
                      {isAdmin && (
                        <Link href="/admin" className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-yellow-400 hover:bg-white/5 rounded-xl transition-all">
-                         <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+                         <LayoutDashboard className="h-4 w-4" /> แดชบอร์ดผู้ดูแล
                        </Link>
                      )}
                      
                      <Link href="/profile/settings" className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/5 rounded-xl transition-all">
-                       <Settings className="h-4 w-4" /> Account Settings
+                       <Settings className="h-4 w-4" /> ตั้งค่าบัญชี
                      </Link>
 
                      <Link href="/profile/purchases" className="flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-white hover:bg-white/5 rounded-xl transition-all">
-                       <History className="h-4 w-4" /> My Purchases
+                       <History className="h-4 w-4" /> ประวัติการเช่า/ซื้อ
                      </Link>
                      
                      <button 
                        onClick={handleSignOut}
                        className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-500/10 rounded-xl transition-all mt-1"
                      >
-                       <LogOut className="h-4 w-4" /> Sign Out
+                       <LogOut className="h-4 w-4" /> ออกจากระบบ
                      </button>
                   </div>
                 )}
@@ -151,7 +150,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link href="/login" className="px-6 py-2 bg-yellow-400 text-black font-black text-sm rounded-full hover:bg-yellow-500 transition-all whitespace-nowrap">
-              Sign In
+              เข้าสู่ระบบ
             </Link>
           )}
         </div>

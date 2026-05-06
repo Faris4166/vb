@@ -73,7 +73,7 @@ export default function MyListPage() {
               <Bookmark className="h-10 w-10 text-yellow-400" />
               รายการของฉัน
             </h1>
-            <p className="text-gray-500 font-medium mt-2">หนังและซีรีส์ที่คุณบันทึกไว้ดูภายหลัง</p>
+            <p className="text-gray-500 font-medium mt-2">วิดีโอที่คุณบันทึกไว้ดูภายหลัง</p>
           </div>
           
           <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-full border border-white/5">
@@ -113,11 +113,11 @@ export default function MyListPage() {
             </div>
             <div className="space-y-2">
               <h3 className="text-xl font-bold">ยังไม่มีรายการที่บันทึกไว้</h3>
-              <p className="text-gray-500 text-sm max-w-xs">ไปสำรวจหนังใหม่ๆ แล้วกดบันทึกเรื่องที่คุณชอบไว้ดูที่นี่สิ!</p>
+              <p className="text-gray-500 text-sm max-w-xs">ไปสำรวจวิดีโอใหม่ๆ แล้วกดบันทึกเรื่องที่คุณชอบไว้ดูที่นี่สิ!</p>
             </div>
             <Link href="/">
               <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-black px-8 rounded-full h-12">
-                ไปสำรวจหนัง
+                ไปสำรวจวิดีโอ
               </Button>
             </Link>
           </div>
